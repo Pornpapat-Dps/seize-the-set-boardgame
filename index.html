@@ -1,0 +1,2731 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seize The Set Boardgame - เกมยึดครองเซต</title>
+<style>
+  :root {
+    --primary: #ff4f9a;
+    --secondary: #7c3aed;
+    --dark: #1f2937;
+    --light: #f8fafc;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: var(--dark);
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .header {
+    text-align: center;
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+
+  .header h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+
+  .game-area {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+
+  .board-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+
+  .control-panel {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+
+  .card-info-panel {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+
+  .toggle-card-info {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .toggle-card-info:hover {
+    background: var(--secondary);
+    transform: translateY(-2px);
+  }
+
+  .card-info-content {
+    display: none;
+    animation: slideDown 0.3s ease;
+  }
+
+  .card-info-content.show {
+    display: block;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+
+  .card-category {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 10px;
+    padding: 20px;
+    border-left: 4px solid var(--primary);
+  }
+
+  .card-category h4 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .card-item {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+
+  .card-item:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .card-name {
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .card-count {
+    background: var(--primary);
+    color: white;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+
+  .total-cards {
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    color: white;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+
+  .game-board {
+    display: grid;
+    grid-template-columns: 40px repeat(8, 60px);
+    grid-template-rows: 40px repeat(8, 60px);
+    gap: 3px;
+    margin: 20px auto;
+    background: var(--dark);
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .cell.header {
+    background: var(--dark);
+    color: white;
+    font-size: 0.8rem;
+  }
+
+  .cell.game-cell {
+    min-height: 60px;
+    border: 2px solid transparent;
+  }
+
+  .cell.game-cell:hover {
+    border-color: var(--warning);
+    transform: scale(1.05);
+  }
+
+  .chip {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+
+  .chip.black {
+    background: linear-gradient(145deg, #374151, #111827);
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.2), inset -2px -2px 5px rgba(0,0,0,0.5);
+  }
+
+  .chip.white {
+    background: linear-gradient(145deg, #f9fafb, #e5e7eb);
+    color: var(--dark);
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.1);
+  }
+
+  .score-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #f0f4f8, #e2e8f0);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  .player-score {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .player-score .chip {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .turn-info {
+    background: var(--primary);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+
+  .turn-info.black-turn {
+    background: linear-gradient(135deg, #374151, #111827);
+  }
+
+  .turn-info.white-turn {
+    background: linear-gradient(135deg, #f9fafb, #e5e7eb);
+    color: var(--dark);
+  }
+
+  .current-player-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.2rem;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  }
+
+  .btn.primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn.secondary {
+    background: var(--secondary);
+    color: white;
+  }
+
+  .btn.success {
+    background: var(--success);
+    color: white;
+  }
+
+  .btn.warning {
+    background: var(--warning);
+    color: white;
+  }
+
+  .btn.danger {
+    background: var(--danger);
+    color: white;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .hand {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .hand h4 {
+    margin-bottom: 10px;
+    color: var(--dark);
+  }
+
+  .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card {
+    background: white;
+    border: 2px solid var(--dark);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .card .card-details {
+    font-size: 0.7rem;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.2;
+  }
+
+  .card:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.05);
+  }
+
+  .card.set {
+    border-color: var(--success);
+  }
+
+  .card.marker {
+    border-color: var(--secondary);
+  }
+
+  .card.selected {
+    background: var(--warning);
+    color: white;
+  }
+
+  .game-log {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 15px;
+    height: 200px;
+    overflow-y: auto;
+  }
+
+  .log-entry {
+    padding: 5px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+  }
+
+  .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    min-width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  .modal h3 {
+    margin-bottom: 20px;
+    color: var(--dark);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .status-bar {
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 1200px) {
+    .game-area {
+      grid-template-columns: 1fr;
+    }
+    
+    .game-board {
+      grid-template-columns: 30px repeat(8, 45px);
+      grid-template-rows: 30px repeat(8, 45px);
+    }
+    
+    .cell.game-cell {
+      min-height: 45px;
+    }
+    
+    .chip {
+      width: 30px;
+      height: 30px;
+    }
+  }
+
+  /* Color Selection Modal */
+  .color-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .color-modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease;
+  }
+
+  .color-selection {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    margin: 30px 0;
+  }
+
+  .color-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 30px 25px;
+    border: 3px solid transparent;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+  }
+
+  .color-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+
+  .color-option.selected {
+    border-color: var(--success);
+    background: #f0fdf4;
+  }
+
+  .color-chip {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  }
+
+  .color-chip.black {
+    background: #1f2937;
+    color: white;
+  }
+
+  .color-chip.white {
+    background: white;
+    color: #1f2937;
+    border: 2px solid #e2e8f0;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8) translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Game Mode Selection Styles */
+  .game-mode-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+  }
+
+  .game-mode-modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+  }
+
+  .mode-selection {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    margin-top: 30px;
+  }
+
+  .mode-option {
+    background: #f8f9fa;
+    border: 3px solid transparent;
+    border-radius: 15px;
+    padding: 30px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 200px;
+  }
+
+  .mode-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  }
+
+  .mode-icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+  }
+
+  .mode-option h3 {
+    margin: 10px 0;
+    color: var(--primary);
+    font-size: 1.3rem;
+  }
+
+  .mode-option p {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+  <!-- Game Mode Selection Modal -->
+  <div id="gameModeModal" class="game-mode-modal" style="display: none;">
+    <div class="game-mode-modal-content">
+      <h2 style="margin-bottom: 20px; color: var(--primary);">🎮 เลือกโหมดเกม</h2>
+      <p style="margin-bottom: 30px; color: #666;">เลือกว่าต้องการเล่นแบบไหน</p>
+      
+      <div class="mode-selection">
+        <div class="mode-option" onclick="selectGameMode('ai')">
+          <div class="mode-icon">🤖</div>
+          <h3>เล่นกับ AI</h3>
+          <p>เล่นกับคอมพิวเตอร์<br>1 ผู้เล่น vs AI</p>
+        </div>
+        
+        <div class="mode-option" onclick="selectGameMode('friend')">
+          <div class="mode-icon">👥</div>
+          <h3>เล่นกับเพื่อน</h3>
+          <p>เล่น 2 คนบนเครื่องเดียว<br>ผลัดกันเล่น</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Color Selection Modal -->
+  <div id="colorModal" class="color-modal" style="display: none;">
+    <div class="color-modal-content">
+      <h2 id="colorModalTitle" style="margin-bottom: 20px; color: var(--primary);">🎯 เลือกสีของคุณ</h2>
+      <p id="colorModalDesc" style="margin-bottom: 30px; color: #666;">เลือกสีที่คุณต้องการเล่น (สีที่เหลือจะเป็น AI)</p>
+      
+      <div class="color-selection">
+        <div class="color-option" data-color="black" onclick="selectColor('black')">
+          <div class="color-chip black">⚫</div>
+          <h3>ผู้เล่นดำ</h3>
+          <p style="color: #666; font-size: 0.9rem;">คุณเล่นสีดำ<br>AI เล่นสีขาว</p>
+        </div>
+        
+        <div class="color-option" data-color="white" onclick="selectColor('white')">
+          <div class="color-chip white">⚪</div>
+          <h3>ผู้เล่นขาว</h3>
+          <p style="color: #666; font-size: 0.9rem;">คุณเล่นสีขาว<br>AI เล่นสีดำ</p>
+        </div>
+      </div>
+      
+      <button id="confirmColorBtn" class="btn primary" disabled onclick="confirmColorSelection()">
+        เริ่มเกม
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>🎯 Seize The Set Boardgame</h1>
+      <p>เกมยึดครองพื้นที่เซต - ผลัดกันเล่น 20 เทิร์น</p>
+    </div>
+
+    <div class="card-info-panel">
+      <button class="toggle-card-info" onclick="toggleCardInfo()">
+        <span id="toggle-icon">👁️</span>
+        <span id="toggle-text">แสดงข้อมูลการ์ด</span>
+      </button>
+      
+      <div class="card-info-content" id="card-info-content">
+        <h3 style="text-align: center; margin-bottom: 25px; color: var(--primary);">📚 ข้อมูลการ์ดในเกม</h3>
+        <div class="card-info-grid">
+        <div class="card-category">
+          <h4>🎴 การ์ดเซต (Set Cards)</h4>
+          <div class="card-list">
+            <div class="card-item" title="การ์ดขนาด 2×2 ช่อง - พื้นฐานของเกม">
+              <span class="card-name">เซต 2×2</span>
+              <span class="card-count">49 ใบ</span>
+            </div>
+            <div class="card-item" title="การ์ดขนาด 4×4 ช่อง - ทรงพลังแต่หายาก">
+              <span class="card-name">เซต 4×4</span>
+              <span class="card-count">4 ใบ</span>
+            </div>
+            <div class="card-item" title="เป้าหมาย: พื้นที่เชื่อมต่อที่เล็กที่สุดของฝั่งตรงข้าม">
+              <span class="card-name">Empty Set ∅</span>
+              <span class="card-count">10 ใบ</span>
+            </div>
+          </div>
+          <div class="total-cards">
+            รวมการ์ดเซต: 63 ใบ | 
+            <span id="remaining-set-cards">เหลือในเด็ค: ?</span>
+          </div>
+        </div>
+
+        <div class="card-category">
+          <h4>⚡ การ์ดเครื่องหมาย (Marker Cards)</h4>
+          <div class="card-list">
+            <div class="card-item" title="รวมพื้นที่ + ยึดครองเบี้ยติดกัน (เทิร์น 16+ ห้ามใช้)">
+              <span class="card-name">Union ∪</span>
+              <span class="card-count">4 ใบ</span>
+            </div>
+            <div class="card-item" title="พื้นที่ที่ทับซ้อนกัน">
+              <span class="card-name">Intersection ∩</span>
+              <span class="card-count">12 ใบ</span>
+            </div>
+            <div class="card-item" title="ลบเบี้ยฝั่งตรงข้าม (ไม่ได้พื้นที่)">
+              <span class="card-name">Difference \</span>
+              <span class="card-count">12 ใบ</span>
+            </div>
+            <div class="card-item" title="ทุกพื้นที่ยกเว้นการ์ดเซต (เทิร์น 10+)">
+              <span class="card-name">Complement ᶜ</span>
+              <span class="card-count">4 ใบ</span>
+            </div>
+          </div>
+          <div class="total-cards">
+            รวมการ์ดเครื่องหมาย: 32 ใบ | 
+            <span id="remaining-marker-cards">เหลือในเด็ค: ?</span>
+          </div>
+        </div>
+        
+        <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); border-radius: 10px; border-left: 4px solid var(--warning);">
+          <h4 style="color: var(--warning); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            ⚠️ กฎพิเศษ
+          </h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9rem;">
+            <div>
+              <strong>🔄 Complement Cards:</strong><br>
+              ใช้ได้ตั้งแต่เทิร์นที่ 10 เท่านั้น
+            </div>
+            <div>
+              <strong>⚡ Union Cards:</strong><br>
+              เทิร์น 16+ หากจั่วได้ต้องทิ้งแล้วจั่วใหม่
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-area">
+      <div class="board-section">
+        <h3>🎲 กระดานเกม 8x8</h3>
+        <div id="gameBoard" class="game-board"></div>
+      </div>
+
+      <div class="control-panel">
+        <div class="score-display">
+          <div class="player-score">
+            <div class="chip black">⚫</div>
+            <div>
+              <div>ผู้เล่นดำ</div>
+              <div id="blackScore">0 คะแนน</div>
+            </div>
+          </div>
+          <div class="player-score">
+            <div class="chip white">⚪</div>
+            <div>
+              <div>ผู้เล่นขาว</div>
+              <div id="whiteScore">0 คะแนน</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="turnInfo" class="turn-info">
+          เกมยังไม่เริ่ม
+        </div>
+
+        <div class="status-bar">
+          <div id="gameStatus">กดเริ่มเกมใหม่เพื่อเล่น</div>
+        </div>
+
+        <div class="actions">
+          <button id="drawSetBtn" class="btn success" disabled>จั่วการ์ดเซต</button>
+          <button id="drawMarkerBtn" class="btn secondary" disabled>จั่วการ์ดเครื่องหมาย</button>
+          <button id="placeCardsBtn" class="btn primary" disabled>ลงการ์ด</button>
+          <button id="discardBtn" class="btn warning" disabled>ทิ้งการ์ด</button>
+          <button id="skipTurnBtn" class="btn danger" disabled>ข้าม/จบเทิร์น</button>
+          <button id="newGameBtn" class="btn primary">เริ่มเกมใหม่</button>
+        </div>
+
+        <div class="hand">
+          <h4>🃏 การ์ดในมือ</h4>
+          <p style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">
+            💡 <strong>วิธีเล่น:</strong> 1️⃣ จั่วการ์ด → 2️⃣ เลือกใช้สิทธิ์ (ลง/ทิ้ง/ข้าม) → จบเทิร์นทันที<br>
+            🎯 <strong>เครื่องหมาย:</strong> Union=รวม+ติดกัน, Intersection=ทับซ้อน, Difference=ลบเบี้ยฝั่งตรงข้าม(ไม่ได้พื้นที่)!
+          </p>
+          <div id="playerHand" class="cards"></div>
+        </div>
+
+        <div class="game-log">
+          <h4>📋 บันทึกการเล่น</h4>
+          <div id="gameLog"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal สำหรับเลือกการ์ด -->
+  <div id="cardModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">เลือกการ์ด</h3>
+      <div id="cardSelection" class="card-grid"></div>
+      <div style="text-align: right;">
+        <button id="modalCancel" class="btn danger" style="margin-right: 10px;">ยกเลิก</button>
+        <button id="modalConfirm" class="btn success">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ตัวแปรเกม
+let gameState = {
+  phase: 'waiting', // waiting, pregame, playing, finished
+  turnPhase: 'draw', // draw, action
+  turn: 0,
+  currentPlayer: 'black', // black, white
+  players: {
+    black: { hand: [], score: 0, tokens: 0 },
+    white: { hand: [], score: 0, tokens: 0 }
+  },
+  board: {},
+  deckSet: [],
+  deckMarker: [],
+  drawnThisTurn: false,
+  cardsPlacedThisTurn: { set: false, marker: false },
+  selectedCards: []
+};
+
+// การ์ดเซต 2x2 (49 ใบ)
+const generate2x2Cards = () => {
+  const cards = [];
+  const letters = ['A','B','C','D','E','F','G','H'];
+  
+  for(let r = 0; r < 7; r++) {
+    for(let c = 0; c < 7; c++) {
+      const cells = [
+        `${letters[r]}${c+1}`, `${letters[r]}${c+2}`,
+        `${letters[r+1]}${c+1}`, `${letters[r+1]}${c+2}`
+      ];
+      cards.push({
+        type: 'set',
+        subtype: '2x2',
+        id: `2x2_${r}_${c}`,
+        label: `2×2 ${letters[r]}${c+1}`,
+        cells: cells
+      });
+    }
+  }
+  return cards;
+};
+
+// การ์ดเซต 4x4 (4 ใบ)
+const generate4x4Cards = () => {
+  const cards = [];
+  const letters = ['A','B','C','D','E','F','G','H'];
+  const quarters = [
+    {r: 0, c: 0, name: 'Q1'}, {r: 0, c: 4, name: 'Q2'},
+    {r: 4, c: 0, name: 'Q3'}, {r: 4, c: 4, name: 'Q4'}
+  ];
+  
+  quarters.forEach(q => {
+    const cells = [];
+    for(let r = q.r; r < q.r + 4; r++) {
+      for(let c = q.c; c < q.c + 4; c++) {
+        cells.push(`${letters[r]}${c+1}`);
+      }
+    }
+    cards.push({
+      type: 'set',
+      subtype: '4x4',
+      id: `4x4_${q.name}`,
+      label: `4×4 ${q.name}`,
+      cells: cells
+    });
+  });
+  
+  return cards;
+};
+
+// การ์ดเครื่องหมาย
+const generateMarkerCards = () => {
+  const cards = [];
+  
+  // Union (4 ใบ)
+  for(let i = 0; i < 4; i++) {
+    cards.push({
+      type: 'marker',
+      subtype: 'union',
+      id: `union_${i}`,
+      label: 'Union (∪)'
+    });
+  }
+  
+  // Intersection (12 ใบ)
+  for(let i = 0; i < 12; i++) {
+    cards.push({
+      type: 'marker',
+      subtype: 'intersection',
+      id: `intersection_${i}`,
+      label: 'Intersection (∩)'
+    });
+  }
+  
+  // Difference (12 ใบ)
+  for(let i = 0; i < 12; i++) {
+    cards.push({
+      type: 'marker',
+      subtype: 'difference',
+      id: `difference_${i}`,
+      label: 'Difference (−)'
+    });
+  }
+  
+  // Complement (4 ใบ) - ใช้ได้ตั้งแต่เทิร์นที่ 10
+  for(let i = 0; i < 4; i++) {
+    cards.push({
+      type: 'marker',
+      subtype: 'complement',
+      id: `complement_${i}`,
+      label: 'Complement (ᶜ)'
+    });
+  }
+  
+  return cards;
+};
+
+// สร้างการ์ดเซตว่าง (Empty Set)
+const generateEmptySetCards = () => {
+  const cards = [];
+  for(let i = 0; i < 10; i++) {
+    cards.push({
+      type: 'set',
+      subtype: 'empty',
+      id: `empty_${i}`,
+      label: 'Empty Set ∅',
+      cells: [] // ไม่มีพื้นที่
+    });
+  }
+  return cards;
+};
+
+// หาพื้นที่ที่เชื่อมต่อกันทั้งหมด
+const getAllConnectedAreas = () => {
+  const visited = new Set();
+  const areas = [];
+  
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const pos = `${String.fromCharCode(65 + row)}${col + 1}`;
+      if (gameState.board[pos] && !visited.has(pos)) {
+        const area = [];
+        const playerColor = gameState.board[pos];
+        
+        const explore = (position) => {
+          if (visited.has(position) || !gameState.board[position] || gameState.board[position] !== playerColor) return;
+          visited.add(position);
+          area.push(position);
+          
+          getAdjacentCells(position).forEach(adjPos => explore(adjPos));
+        };
+        
+        explore(pos);
+        if (area.length > 0) {
+          areas.push({ positions: area, color: playerColor, size: area.length });
+        }
+      }
+    }
+  }
+  
+  return areas;
+};
+
+// หาพื้นที่เชื่อมต่อที่เล็กที่สุดของฝั่งตรงข้าม
+const getSmallestOpponentArea = () => {
+  const opponentColor = gameState.currentPlayer === 'black' ? 'white' : 'black';
+  const allAreas = getAllConnectedAreas();
+  const opponentAreas = allAreas.filter(area => area.color === opponentColor);
+  
+  if (opponentAreas.length === 0) return [];
+  
+  const smallestArea = opponentAreas.reduce((min, current) => 
+    current.size < min.size ? current : min
+  );
+  
+  return smallestArea.positions;
+};
+
+// ใช้ Empty Set กับการ์ดเครื่องหมาย
+const applyEmptySetWithMarker = (emptySetCard, markerCard) => {
+  const opponentColor = gameState.currentPlayer === 'black' ? 'white' : 'black';
+  const playerName = getPlayerName(gameState.currentPlayer);
+  
+  // หาพื้นที่ที่เชื่อมต่อกันที่เล็กที่สุดของฝั่งตรงข้าม
+  const smallestOpponentArea = getSmallestOpponentArea();
+  
+  if (smallestOpponentArea.length === 0) {
+    alert('ไม่มีเบี้ยของฝั่งตรงข้ามบนกระดาน!');
+    
+    // ลบการ์ดแม้ไม่สำเร็จ
+    const setIndex = gameState.selectedCards.find(i => gameState.players[gameState.currentPlayer].hand[i].type === 'set');
+    const markerIndex = gameState.selectedCards.find(i => gameState.players[gameState.currentPlayer].hand[i].type === 'marker');
+    const allIndices = [setIndex, markerIndex].sort((a, b) => b - a);
+    allIndices.forEach(index => gameState.players[gameState.currentPlayer].hand.splice(index, 1));
+    
+    gameState.selectedCards = [];
+    updateDisplay();
+    return;
+  }
+  
+  let logMsg = `${playerName} ใช้ ${emptySetCard.label} + ${markerCard.label} กับพื้นที่ ${smallestOpponentArea.length} ช่อง: ${smallestOpponentArea.join(', ')}`;
+  
+  switch(markerCard.subtype) {
+    case 'union':
+      // Union + Empty Set = ไม่เกิดอะไร
+      logMsg += ' → ไม่เกิดการเปลี่ยนแปลง (Union + Empty Set)';
+      break;
+      
+    case 'intersection':
+      // Intersection + Empty Set = ทำให้พื้นที่นั้นไม่มีเจ้าของ
+      smallestOpponentArea.forEach(pos => {
+        delete gameState.board[pos];
+        const cell = document.querySelector(`[data-position="${pos}"]`);
+        if(cell) {
+          cell.innerHTML = pos;
+          cell.style.backgroundColor = 'white';
+        }
+      });
+      updateTokenCounts();
+      logMsg += ' → ลบเบี้ยออกจากกระดาน (Intersection + Empty Set)';
+      break;
+      
+    case 'difference':
+      // Difference + Empty Set = ไม่เกิดอะไร
+      logMsg += ' → ไม่เกิดการเปลี่ยนแปลง (Difference + Empty Set)';
+      break;
+      
+    case 'complement':
+      // Complement + Empty Set = ได้พื้นที่ทั้งกระดานเป็นของเรา
+      const allCells = [];
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          allCells.push(`${String.fromCharCode(65 + row)}${col + 1}`);
+        }
+      }
+      
+      allCells.forEach(pos => {
+        gameState.board[pos] = gameState.currentPlayer;
+        const cell = document.querySelector(`[data-position="${pos}"]`);
+        if(cell) {
+          const chip = document.createElement('div');
+          chip.className = `chip ${gameState.currentPlayer}`;
+          chip.textContent = gameState.currentPlayer === 'black' ? '⚫' : '⚪';
+          cell.innerHTML = '';
+          cell.appendChild(chip);
+          cell.style.backgroundColor = gameState.currentPlayer === 'black' ? '#f3f4f6' : '#fef3c7';
+        }
+      });
+      updateTokenCounts();
+      logMsg += ' → ยึดครองทั้งกระดาน! (Complement + Empty Set)';
+      break;
+  }
+  
+  logMessage(logMsg);
+  
+  // ตั้งค่าสถานะ
+  gameState.cardsPlacedThisTurn.set = true;
+  gameState.cardsPlacedThisTurn.marker = true;
+  
+  // ลบการ์ดที่ใช้ทั้งสองใบ
+  const setIndex = gameState.selectedCards.find(i => gameState.players[gameState.currentPlayer].hand[i].type === 'set');
+  const markerIndex = gameState.selectedCards.find(i => gameState.players[gameState.currentPlayer].hand[i].type === 'marker');
+  const allIndices = [setIndex, markerIndex].sort((a, b) => b - a);
+  allIndices.forEach(index => gameState.players[gameState.currentPlayer].hand.splice(index, 1));
+  
+  gameState.selectedCards = [];
+  updateDisplay();
+  
+  // จบเทิร์นทันที
+  setTimeout(() => {
+    skipTurn();
+  }, 1000);
+  updateGameStatus('ใช้ Empty Set แล้ว - จะจบเทิร์นในอีก 1 วินาที...');
+  enableButtons([]);
+};
+
+// สร้างกระดาน
+const createBoard = () => {
+  const board = document.getElementById('gameBoard');
+  board.innerHTML = '';
+  
+  const letters = ['A','B','C','D','E','F','G','H'];
+  const numbers = ['1','2','3','4','5','6','7','8'];
+  
+  // มุมซ้ายบน
+  const cornerCell = document.createElement('div');
+  cornerCell.className = 'cell header';
+  cornerCell.textContent = '🎯';
+  board.appendChild(cornerCell);
+  
+  // หัวคอลัมน์
+  numbers.forEach(num => {
+    const cell = document.createElement('div');
+    cell.className = 'cell header';
+    cell.textContent = num;
+    board.appendChild(cell);
+  });
+  
+  // แถวและเซลล์เกม
+  letters.forEach(letter => {
+    // หัวแถว
+    const rowHeader = document.createElement('div');
+    rowHeader.className = 'cell header';
+    rowHeader.textContent = letter;
+    board.appendChild(rowHeader);
+    
+    // เซลล์เกม
+    numbers.forEach(num => {
+      const cell = document.createElement('div');
+      cell.className = 'cell game-cell';
+      cell.dataset.position = `${letter}${num}`;
+      cell.textContent = `${letter}${num}`;
+      board.appendChild(cell);
+    });
+  });
+};
+
+// สุ่มการ์ด
+const shuffleArray = (array) => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
+// หาช่องที่อยู่ติดกัน
+const getAdjacentCells = (position) => {
+  const letter = position.charAt(0);
+  const number = parseInt(position.charAt(1));
+  const adjacent = [];
+  
+  // ขึ้น, ลง, ซ้าย, ขวา
+  const directions = [
+    { row: -1, col: 0 }, // ขึ้น
+    { row: 1, col: 0 },  // ลง
+    { row: 0, col: -1 }, // ซ้าย
+    { row: 0, col: 1 }   // ขวา
+  ];
+  
+  const letterIndex = letter.charCodeAt(0) - 65; // A=0, B=1, ...
+  
+  directions.forEach(dir => {
+    const newRow = letterIndex + dir.row;
+    const newCol = number - 1 + dir.col; // number เป็น 1-based
+    
+    if (newRow >= 0 && newRow <= 7 && newCol >= 0 && newCol <= 7) {
+      const newLetter = String.fromCharCode(65 + newRow);
+      const newNumber = newCol + 1;
+      adjacent.push(`${newLetter}${newNumber}`);
+    }
+  });
+  
+  return adjacent;
+};
+
+// หาพื้นที่ที่เชื่อมต่อกัน (Connected Components)
+const getConnectedArea = (startPositions, playerColor) => {
+  const visited = new Set();
+  const connectedArea = new Set();
+  
+  const dfs = (position) => {
+    if (visited.has(position) || connectedArea.has(position)) return;
+    
+    // ตรวจสอบว่าช่องนี้มีเบี้ยของผู้เล่นหรือไม่
+    if (!gameState.board[position] || gameState.board[position] !== playerColor) {
+      return;
+    }
+    
+    visited.add(position);
+    connectedArea.add(position);
+    
+    // ค้นหาช่องติดกันที่มีเบี้ยสีเดียวกัน
+    const adjacent = getAdjacentCells(position);
+    adjacent.forEach(adjPos => {
+      if (gameState.board[adjPos] === playerColor) {
+        dfs(adjPos);
+      }
+    });
+  };
+  
+  // เริ่มค้นหาจากทุกตำแหน่งเริ่มต้น
+  startPositions.forEach(pos => {
+    if (gameState.board[pos] === playerColor) {
+      dfs(pos);
+    }
+  });
+  
+  return Array.from(connectedArea);
+};
+
+// เริ่มเกมใหม่
+let selectedPlayerColor = null;
+let aiColor = null;
+let gameMode = null; // 'ai' หรือ 'friend'
+
+// ฟังก์ชันเปลี่ยนการ์ดจากกอง (สำหรับ pregame phase)
+const changeCardFromDeck = () => {
+  const cardIndex = gameState.selectedCards[0];
+  const oldCard = gameState.players[gameState.currentPlayer].hand[cardIndex];
+  
+  // ใส่การ์ดเก่ากลับไปที่ด้านล่างของกอง
+  gameState.deckSet.unshift(oldCard);
+  
+  // จั่วการ์ดใหม่จากด้านบน
+  if(gameState.deckSet.length > 1) {
+    const newCard = gameState.deckSet.pop();
+    gameState.players[gameState.currentPlayer].hand[cardIndex] = newCard;
+    
+    const playerName = getPlayerName(gameState.currentPlayer);
+    logMessage(`${playerName} เปลี่ยนการ์ด: ${oldCard.label} → ${newCard.label} (หลีกเลี่ยงการซ้ำ)`);
+    
+    // ตรวจสอบการ์ดใหม่ว่าซ้ำหรือไม่
+    const conflicts = newCard.cells.filter(pos => gameState.board[pos]);
+    if(conflicts.length > 0) {
+      // ยังซ้ำอยู่ ให้เปลี่ยนอีกครั้ง
+      const isAI = gameState.players[gameState.currentPlayer].isAI;
+      
+      if(isAI) {
+        // AI เปลี่ยนการ์ดต่อเนื่องจนกว่าจะไม่ซ้ำ
+        if(gameState.deckSet.length > 1) {
+          changeCardFromDeck();
+          return;
+        }
+      } else {
+        // ผู้เล่นคนเลือก
+        const continueChange = confirm(`การ์ดใหม่ยังซ้ำกับผู้เล่นแรกอยู่ที่: ${conflicts.join(', ')}\n\nต้องการเปลี่ยนการ์ดใหม่อีกครั้งหรือไม่?`);
+        
+        if(continueChange && gameState.deckSet.length > 1) {
+          changeCardFromDeck();
+          return;
+        } else {
+          // ให้เลือกการ์ดอื่นจากมือ
+          alert('กรุณาเลือกการ์ดอื่นจากมือ หรือเปลี่ยนการ์ดใหม่อีกครั้ง');
+          gameState.selectedCards = [];
+          updateDisplay();
+          return;
+        }
+      }
+    }
+    
+    // การ์ดใหม่ไม่ซ้ำ ใช้ได้
+    gameState.selectedCards = [cardIndex];
+    updateDisplay();
+    
+    const isAI = gameState.players[gameState.currentPlayer].isAI;
+    
+    if(isAI) {
+      // AI วางการ์ดทันที
+      setTimeout(() => {
+        placePregameCard();
+      }, 300);
+    } else {
+      // แสดงข้อความแนะนำสำหรับผู้เล่น
+      updateGameStatus('การ์ดใหม่ไม่ซ้ำแล้ว - กดวางการ์ดเพื่อดำเนินการต่อ');
+      enableButtons(['placeCardsBtn']);
+    }
+    
+  } else {
+    alert('ไม่มีการ์ดในกองให้เปลี่ยน!');
+  }
+};
+
+// ฟังก์ชันสำหรับแสดงชื่อผู้เล่น
+const getPlayerName = (color) => {
+  if (!gameState || !gameState.gameMode) {
+    return color === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+  }
+  
+  if (gameState.gameMode === 'ai') {
+    if (gameState.players[color].isAI) {
+      return color === 'black' ? 'AI (ดำ)' : 'AI (ขาว)';
+    } else {
+      return color === 'black' ? 'คุณ (ดำ)' : 'คุณ (ขาว)';
+    }
+  } else {
+    return color === 'black' ? 'ผู้เล่น 1 (ดำ)' : 'ผู้เล่น 2 (ขาว)';
+  }
+};
+
+const startNewGame = () => {
+  // แสดง modal เลือกโหมดเกม
+  document.getElementById('gameModeModal').style.display = 'flex';
+};
+
+const selectGameMode = (mode) => {
+  gameMode = mode;
+  
+  // ซ่อน modal เลือกโหมด
+  document.getElementById('gameModeModal').style.display = 'none';
+  
+  // อัพเดทข้อความใน modal เลือกสีตามโหมด
+  const colorModalTitle = document.getElementById('colorModalTitle');
+  const colorModalDesc = document.getElementById('colorModalDesc');
+  
+  if (mode === 'ai') {
+    colorModalTitle.textContent = '🎯 เลือกสีของคุณ';
+    colorModalDesc.textContent = 'เลือกสีที่คุณต้องการเล่น (สีที่เหลือจะเป็น AI)';
+    
+    // อัพเดทคำอธิบายในตัวเลือกสี
+    document.querySelector('[data-color="black"] p').innerHTML = 'คุณเล่นสีดำ<br>AI เล่นสีขาว';
+    document.querySelector('[data-color="white"] p').innerHTML = 'คุณเล่นสีขาว<br>AI เล่นสีดำ';
+  } else {
+    colorModalTitle.textContent = '🎯 ใครจะเป็นผู้เล่นดำ?';
+    colorModalDesc.textContent = 'ผู้เล่นดำจะเป็นคนเริ่มเกมก่อน (ไม่มี AI ในโหมดนี้)';
+    
+    // อัพเดทคำอธิบายในตัวเลือกสี
+    document.querySelector('[data-color="black"] p').innerHTML = 'ผู้เล่น 1 เป็นสีดำ<br>ผู้เล่น 2 เป็นสีขาว';
+    document.querySelector('[data-color="white"] p').innerHTML = 'ผู้เล่น 1 เป็นสีขาว<br>ผู้เล่น 2 เป็นสีดำ';
+  }
+  
+  // แสดง modal เลือกสี
+  document.getElementById('colorModal').style.display = 'flex';
+};
+
+const selectColor = (color) => {
+  // ล้างการเลือกก่อนหน้า
+  document.querySelectorAll('.color-option').forEach(option => {
+    option.classList.remove('selected');
+  });
+  
+  // เลือกสีใหม่
+  document.querySelector(`[data-color="${color}"]`).classList.add('selected');
+  selectedPlayerColor = color;
+  aiColor = color === 'black' ? 'white' : 'black';
+  
+  // เปิดใช้งานปุ่มเริ่มเกม
+  document.getElementById('confirmColorBtn').disabled = false;
+};
+
+const confirmColorSelection = () => {
+  // ซ่อน modal
+  document.getElementById('colorModal').style.display = 'none';
+  
+  gameState = {
+    phase: 'pregame',
+    turn: 0,
+    currentPlayer: 'black',
+    playerColor: selectedPlayerColor,
+    aiColor: aiColor,
+    gameMode: gameMode, // เก็บโหมดเกม
+    players: {
+      black: { hand: [], score: 0, tokens: 0, isAI: gameMode === 'ai' && selectedPlayerColor !== 'black' },
+      white: { hand: [], score: 0, tokens: 0, isAI: gameMode === 'ai' && selectedPlayerColor !== 'white' }
+    },
+    board: {},
+    deckSet: shuffleArray([...generate2x2Cards(), ...generate4x4Cards(), ...generateEmptySetCards()]),
+    deckMarker: shuffleArray(generateMarkerCards()),
+    drawnThisTurn: false,
+    cardsPlacedThisTurn: { set: false, marker: false },
+    selectedCards: []
+  };
+  
+  // แจกการ์ดเริ่มต้น (การ์ดเซตคนละ 2 ใบ)
+  for(let i = 0; i < 2; i++) {
+    gameState.players.black.hand.push(gameState.deckSet.pop());
+    gameState.players.white.hand.push(gameState.deckSet.pop());
+  }
+  
+  clearBoard();
+  updateDisplay();
+  
+  const playerName = selectedPlayerColor === 'black' ? 'คุณ (ดำ)' : 'AI (ดำ)';
+  const aiName = selectedPlayerColor === 'black' ? 'AI (ขาว)' : 'คุณ (ขาว)';
+  
+  logMessage(`🎮 เริ่มเกมใหม่! ${playerName} vs ${aiName}`);
+  logMessage('📝 ให้ผู้เล่นดำลงการ์ดเซต 1 ใบก่อน (ต้องไม่ซ้ำกับผู้เล่นขาว)');
+  
+  if (gameState.players.black.isAI) {
+    updateGameStatus('AI (ดำ) กำลังคิด...');
+    setTimeout(() => aiMove(), 800); // ลดเวลาให้เร็วขึ้น
+  } else {
+    updateGameStatus('คุณ (ดำ): เลือกการ์ดเซต 1 ใบเพื่อวางเบี้ยเริ่มต้น');
+  }
+  enableButtons(['placeCardsBtn']);
+};
+
+// ล้างกระดาน
+const clearBoard = () => {
+  gameState.board = {};
+  const cells = document.querySelectorAll('.game-cell');
+  cells.forEach(cell => {
+    cell.innerHTML = cell.dataset.position;
+    cell.style.backgroundColor = 'white';
+  });
+};
+
+// วางเบี้ยบนกระดาน
+const placeTokens = (positions, player) => {
+  positions.forEach(pos => {
+    gameState.board[pos] = player;
+    const cell = document.querySelector(`[data-position="${pos}"]`);
+    if(cell) {
+      const chip = document.createElement('div');
+      chip.className = `chip ${player}`;
+      chip.textContent = player === 'black' ? '⚫' : '⚪';
+      cell.innerHTML = '';
+      cell.appendChild(chip);
+      
+      // เพิ่มสีพื้นหลังเล็กน้อยเพื่อแสดงการครอบครอง
+      cell.style.backgroundColor = player === 'black' ? '#f3f4f6' : '#fef3c7';
+    }
+  });
+  updateTokenCounts();
+};
+
+// นับจำนวนเบี้ย
+const updateTokenCounts = () => {
+  gameState.players.black.tokens = Object.values(gameState.board).filter(p => p === 'black').length;
+  gameState.players.white.tokens = Object.values(gameState.board).filter(p => p === 'white').length;
+};
+
+// คำนวณคะแนน
+const calculateScore = (player) => {
+  return gameState.players[player].tokens - gameState.players[player].hand.length;
+};
+
+// อัพเดทการแสดงผล
+const updateDisplay = () => {
+  // อัพเดทคะแนน
+  document.getElementById('blackScore').textContent = `${calculateScore('black')} คะแนน (เบี้ย: ${gameState.players.black.tokens}, การ์ด: ${gameState.players.black.hand.length})`;
+  document.getElementById('whiteScore').textContent = `${calculateScore('white')} คะแนน (เบี้ย: ${gameState.players.white.tokens}, การ์ด: ${gameState.players.white.hand.length})`;
+  
+  // อัพเดทข้อมูลเทิร์น
+  const turnInfo = document.getElementById('turnInfo');
+  turnInfo.className = 'turn-info'; // รีเซ็ต class
+  
+  if(gameState.phase === 'playing') {
+    const playerName = gameState.currentPlayer === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+    const playerIcon = gameState.currentPlayer === 'black' ? '⚫' : '⚪';
+    turnInfo.className = `turn-info ${gameState.currentPlayer}-turn`;
+    turnInfo.innerHTML = `
+      <div class="current-player-indicator">
+        <span>${playerIcon}</span>
+        <span>เทิร์นที่ ${gameState.turn}/20 - ${playerName}</span>
+      </div>
+    `;
+  } else if(gameState.phase === 'pregame') {
+    const playerName = gameState.currentPlayer === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+    const playerIcon = gameState.currentPlayer === 'black' ? '⚫' : '⚪';
+    turnInfo.className = `turn-info ${gameState.currentPlayer}-turn`;
+    turnInfo.innerHTML = `
+      <div class="current-player-indicator">
+        <span>${playerIcon}</span>
+        <span>เตรียมเริ่มเกม - ${playerName} วางเบี้ยเริ่มต้น</span>
+      </div>
+    `;
+  } else if(gameState.phase === 'finished') {
+    const blackScore = calculateScore('black');
+    const whiteScore = calculateScore('white');
+    const winner = blackScore > whiteScore ? 'ผู้เล่นดำ' : blackScore < whiteScore ? 'ผู้เล่นขาว' : 'เสมอ';
+    turnInfo.textContent = `🏁 จบเกม! ผู้ชนะ: ${winner}`;
+  } else {
+    turnInfo.textContent = 'กดเริ่มเกมใหม่เพื่อเล่น';
+  }
+  
+  // อัพเดทการ์ดในมือ
+  updatePlayerHand();
+  
+  // อัพเดทการนับการ์ดคงเหลือ
+  updateCardCounts();
+};
+
+// แสดงการ์ดในมือ
+const updatePlayerHand = () => {
+  const handDiv = document.getElementById('playerHand');
+  handDiv.innerHTML = '';
+  
+  if(gameState.phase === 'waiting') return;
+  
+  const currentHand = gameState.players[gameState.currentPlayer].hand;
+  currentHand.forEach((card, index) => {
+    const cardElement = document.createElement('div');
+    cardElement.className = `card ${card.type}`;
+    cardElement.onclick = () => selectCard(index);
+    
+    // สร้างข้อความหลัก
+    const labelDiv = document.createElement('div');
+    labelDiv.textContent = card.label;
+    cardElement.appendChild(labelDiv);
+    
+    // แสดงรายละเอียดพื้นที่สำหรับการ์ดเซต
+    if(card.type === 'set' && card.cells) {
+      const detailsDiv = document.createElement('div');
+      detailsDiv.className = 'card-details';
+      detailsDiv.textContent = `พื้นที่: ${card.cells.join(', ')}`;
+      cardElement.appendChild(detailsDiv);
+    }
+    
+    cardElement.dataset.index = index;
+    
+    if(gameState.selectedCards.includes(index)) {
+      cardElement.classList.add('selected');
+    }
+    
+    handDiv.appendChild(cardElement);
+  });
+};
+
+// เลือกการ์ด
+const selectCard = (index) => {
+  const cardIndex = gameState.selectedCards.indexOf(index);
+  if(cardIndex === -1) {
+    gameState.selectedCards.push(index);
+  } else {
+    gameState.selectedCards.splice(cardIndex, 1);
+  }
+  updatePlayerHand();
+};
+
+// เปิด/ปิดปุ่ม
+const enableButtons = (buttons) => {
+  const allButtons = ['drawSetBtn', 'drawMarkerBtn', 'placeCardsBtn', 'discardBtn', 'skipTurnBtn'];
+  allButtons.forEach(id => {
+    document.getElementById(id).disabled = !buttons.includes(id);
+  });
+};
+
+// อัพเดทสถานะเกม
+const updateGameStatus = (message) => {
+  document.getElementById('gameStatus').textContent = message;
+};
+
+// บันทึกข้อความ
+const logMessage = (message) => {
+  const logDiv = document.getElementById('gameLog');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.textContent = message;
+  logDiv.appendChild(entry);
+  logDiv.scrollTop = logDiv.scrollHeight;
+};
+
+// จั่วการ์ดเซต
+const drawSetCard = () => {
+  if(gameState.drawnThisTurn) {
+    alert('คุณได้จั่วการ์ดในเทิร์นนี้แล้ว!');
+    return;
+  }
+  
+  if(gameState.deckSet.length === 0) {
+    alert('กองการ์ดเซตหมดแล้ว!');
+    return;
+  }
+  
+  const card = gameState.deckSet.pop();
+  gameState.players[gameState.currentPlayer].hand.push(card);
+  
+  const playerName = getPlayerName(gameState.currentPlayer);
+  logMessage(`${playerName} จั่วการ์ดเซต: ${card.label} (${card.cells.join(', ')})`);
+  
+  // จั่วการ์ดแล้วเข้าสู่ขั้นตอนเลือกใช้สิทธิ์
+  gameState.drawnThisTurn = true;
+  gameState.turnPhase = 'action';
+  updateDisplay();
+  
+  if (gameState.players[gameState.currentPlayer].isAI) {
+    updateGameStatus('AI กำลังคิดว่าจะใช้การ์ดอย่างไร...');
+    setTimeout(() => aiMove(), 600); // ลดเวลาให้เร็วขึ้น
+  } else {
+    updateGameStatus('เลือกใช้สิทธิ์: ลงการ์ด (สูงสุด 2 ใบ ประเภทละ 1 ใบ), ทิ้งการ์ด (1 ใบ), หรือข้ามเทิร์น');
+    enableButtons(['placeCardsBtn', 'discardBtn', 'skipTurnBtn']);
+  }
+};
+
+// จั่วการ์ดเครื่องหมาย
+const drawMarkerCard = () => {
+  if(gameState.drawnThisTurn) {
+    alert('คุณได้จั่วการ์ดในเทิร์นนี้แล้ว!');
+    return;
+  }
+  
+  if(gameState.deckMarker.length === 0) {
+    alert('กองการ์ดเครื่องหมายหมดแล้ว!');
+    return;
+  }
+  
+  let card = gameState.deckMarker.pop();
+  
+  // ตรวจสอบกฎเทิร์นที่ 16+ สำหรับ Union
+  let unionDiscarded = 0;
+  while(gameState.turn >= 16 && card.subtype === 'union') {
+    unionDiscarded++;
+    logMessage(`⚠️ เทิร์นที่ 16+ จั่วได้ Union (ครั้งที่ ${unionDiscarded}) ต้องทิ้งและจั่วใหม่`);
+    
+    if(gameState.deckMarker.length === 0) {
+      alert('ไม่มีการ์ดเครื่องหมายให้จั่วแล้ว!');
+      return;
+    }
+    card = gameState.deckMarker.pop();
+    
+    // ป้องกันการวนลูปไม่สิ้นสุด
+    if(unionDiscarded >= 10) {
+      alert('มีการ์ด Union มากเกินไป ไม่สามารถจั่วการ์ดอื่นได้!');
+      return;
+    }
+  }
+  
+  // ตรวจสอบกฎ Complement (ใช้ได้ตั้งแต่เทิร์นที่ 10)
+  if(card.subtype === 'complement' && gameState.turn < 10) {
+    logMessage('⚠️ การ์ด Complement ใช้ได้ตั้งแต่เทิร์นที่ 10 เท่านั้น - ทิ้งและจั่วใหม่');
+    
+    if(gameState.deckMarker.length === 0) {
+      alert('ไม่มีการ์ดเครื่องหมายให้จั่วแล้ว!');
+      return;
+    }
+    card = gameState.deckMarker.pop();
+    
+    // ตรวจสอบซ้ำถ้าการ์ดใหม่ยังเป็น Complement
+    if(card.subtype === 'complement' && gameState.turn < 10) {
+      logMessage('⚠️ จั่วได้ Complement อีกครั้ง - ทิ้งและจั่วใหม่');
+      
+      if(gameState.deckMarker.length === 0) {
+        alert('ไม่มีการ์ดเครื่องหมายให้จั่วแล้ว!');
+        return;
+      }
+      card = gameState.deckMarker.pop();
+    }
+  }
+  
+  gameState.players[gameState.currentPlayer].hand.push(card);
+  
+  const playerName = getPlayerName(gameState.currentPlayer);
+  logMessage(`${playerName} จั่วการ์ดเครื่องหมาย: ${card.label}`);
+  
+  // จั่วการ์ดแล้วเข้าสู่ขั้นตอนเลือกใช้สิทธิ์
+  gameState.drawnThisTurn = true;
+  gameState.turnPhase = 'action';
+  updateDisplay();
+  
+  if (gameState.players[gameState.currentPlayer].isAI) {
+    updateGameStatus('AI กำลังคิดว่าจะใช้การ์ดอย่างไร...');
+    setTimeout(() => aiMove(), 600); // ลดเวลาให้เร็วขึ้น
+  } else {
+    updateGameStatus('เลือกใช้สิทธิ์: ลงการ์ด (สูงสุด 2 ใบ ประเภทละ 1 ใบ), ทิ้งการ์ด (1 ใบ), หรือข้ามเทิร์น');
+    enableButtons(['placeCardsBtn', 'discardBtn', 'skipTurnBtn']);
+  }
+};
+
+// ลงการ์ด
+const placeCards = () => {
+  if(gameState.phase === 'pregame') {
+    placePregameCard();
+    return;
+  }
+  
+  if(gameState.turnPhase !== 'action') {
+    alert('ต้องจั่วการ์ดก่อนลงการ์ด!');
+    return;
+  }
+  
+  if(gameState.selectedCards.length === 0) {
+    alert('เลือกการ์ดที่ต้องการลงก่อน!');
+    return;
+  }
+  
+  if(gameState.selectedCards.length > 2) {
+    alert('ลงได้สูงสุด 2 ใบ (ประเภทละ 1 ใบ)!');
+    return;
+  }
+  
+  // ตรวจสอบประเภทการ์ด
+  const selectedCardObjs = gameState.selectedCards.map(i => gameState.players[gameState.currentPlayer].hand[i]);
+  const setCards = selectedCardObjs.filter(c => c.type === 'set');
+  const markerCards = selectedCardObjs.filter(c => c.type === 'marker');
+  
+  if(setCards.length > 1 || markerCards.length > 1) {
+    alert('ลงได้ประเภทละ 1 ใบเท่านั้น!');
+    return;
+  }
+  
+  // ตรวจสอบว่าลงประเภทนี้แล้วหรือยัง
+  if(setCards.length > 0 && gameState.cardsPlacedThisTurn.set) {
+    alert('ลงการ์ดเซตไปแล้วในเทิร์นนี้!');
+    return;
+  }
+  
+  if(markerCards.length > 0 && gameState.cardsPlacedThisTurn.marker) {
+    alert('ลงการ์ดเครื่องหมายไปแล้วในเทิร์นนี้!');
+    return;
+  }
+  
+  // ลงการ์ดเซต
+  if(setCards.length > 0) {
+    const setCard = setCards[0];
+    
+    // จัดการ Empty Set (เซตว่าง)
+    if(setCard.subtype === 'empty') {
+      if(markerCards.length === 0) {
+        alert('Empty Set ต้องใช้ร่วมกับการ์ดเครื่องหมาย!');
+        return;
+      }
+      
+      const markerCard = markerCards[0];
+      applyEmptySetWithMarker(setCard, markerCard);
+      return;
+    }
+    
+    // ตรวจสอบการทับซ้อน
+    const conflicts = setCard.cells.filter(pos => gameState.board[pos] && gameState.board[pos] !== gameState.currentPlayer);
+    
+    // ถ้ามีการทับซ้อน ต้องใช้การ์ดเครื่องหมายควบคู่
+    if(conflicts.length > 0) {
+      // ตรวจสอบว่ามีการ์ดเครื่องหมายที่เลือกด้วยหรือไม่
+      if(markerCards.length === 0) {
+        alert(`การ์ดเซตทับซ้อนกับเบี้ยฝั่งตรงข้ามที่: ${conflicts.join(', ')}\nต้องเลือกการ์ดเครื่องหมายควบคู่เพื่อใช้งาน!`);
+        return;
+      }
+      
+      // ใช้การ์ดเซต + เครื่องหมาย
+      const markerCard = markerCards[0];
+      applySetWithMarker(setCard, markerCard, conflicts);
+    } else {
+      // ลงการ์ดเซตปกติ (ไม่มีการทับซ้อน)
+      placeTokens(setCard.cells, gameState.currentPlayer);
+      gameState.cardsPlacedThisTurn.set = true;
+      
+      const playerName = gameState.currentPlayer === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+      logMessage(`${playerName} ลงการ์ดเซต: ${setCard.label}`);
+    }
+  }
+  
+  // ลงการ์ดเครื่องหมายโดยลำพัง (ต้องมีการ์ดเซต 2 ใบ)
+  if(markerCards.length > 0 && setCards.length === 0) {
+    const markerCard = markerCards[0];
+    
+    // ต้องมีการ์ดเซตอย่างน้อย 2 ใบในมือ
+    const allSetCards = gameState.players[gameState.currentPlayer].hand.filter(c => c.type === 'set');
+    if(allSetCards.length < 2) {
+      alert('ต้องมีการ์ดเซตอย่างน้อย 2 ใบในมือเพื่อใช้การ์ดเครื่องหมาย!');
+      return;
+    }
+    
+    // เปิด Modal เลือกการ์ดเซต 2 ใบ
+    showSetSelectionModal(markerCard);
+    return;
+  }
+  
+  // ลบการ์ดที่ลงแล้วออกจากมือ
+  gameState.selectedCards.sort((a, b) => b - a).forEach(index => {
+    gameState.players[gameState.currentPlayer].hand.splice(index, 1);
+  });
+  
+  gameState.selectedCards = [];
+  updateDisplay();
+  
+  // ตรวจสอบว่าสามารถลงการ์ดเพิ่มได้หรือไม่
+  const canPlaceMore = (!gameState.cardsPlacedThisTurn.set || !gameState.cardsPlacedThisTurn.marker) &&
+                      gameState.players[gameState.currentPlayer].hand.length > 0;
+  
+  if(canPlaceMore) {
+    // ถ้าเป็น AI ให้จบเทิร์นทันที ไม่ลงการ์ดต่อ
+    if (gameState.players[gameState.currentPlayer].isAI) {
+      setTimeout(() => {
+        skipTurn();
+      }, 500); // AI รอสักครู่แล้วจบเทิร์น
+      updateGameStatus('AI เล่นเสร็จแล้ว - กำลังจบเทิร์น...');
+      enableButtons([]);
+    } else {
+      updateGameStatus('สามารถลงการ์ดเพิ่มได้ (ประเภทละ 1 ใบ) หรือเลือกทิ้งการ์ด/ข้ามเทิร์น');
+      enableButtons(['placeCardsBtn', 'discardBtn', 'skipTurnBtn']);
+    }
+  } else {
+    // จบเทิร์นทันทีเมื่อลงการ์ดครบแล้ว
+    const delay = gameState.players[gameState.currentPlayer].isAI ? 300 : 1000; // AI จบเร็วขึ้น
+    setTimeout(() => {
+      skipTurn();
+    }, delay);
+    const message = gameState.players[gameState.currentPlayer].isAI ? 
+      'AI ลงการ์ดครบแล้ว - กำลังจบเทิร์น...' : 
+      'ลงการ์ดครบแล้ว - จะจบเทิร์นในอีก 1 วินาที...';
+    updateGameStatus(message);
+    enableButtons([]);
+  }
+};
+
+// วางการ์ดก่อนเริ่มเกม
+const placePregameCard = () => {
+  if(gameState.selectedCards.length !== 1) {
+    alert('เลือกการ์ดเซต 1 ใบ!');
+    return;
+  }
+  
+  const cardIndex = gameState.selectedCards[0];
+  const card = gameState.players[gameState.currentPlayer].hand[cardIndex];
+  
+  if(card.type !== 'set') {
+    alert('ต้องเลือกการ์ดเซตเท่านั้น!');
+    return;
+  }
+  
+  // ตรวจสอบการทับซ้อน (สำหรับผู้เล่นคนที่สอง)
+  if(gameState.currentPlayer === 'white') {
+    const conflicts = card.cells.filter(pos => gameState.board[pos]);
+    if(conflicts.length > 0) {
+      // เสนอให้เปลี่ยนการ์ด
+      const changeCard = confirm(`การ์ดทับซ้อนกับผู้เล่นแรกที่: ${conflicts.join(', ')}\n\nต้องการเปลี่ยนการ์ดใหม่หรือไม่?\n(OK = เปลี่ยนการ์ด, Cancel = เลือกการ์ดอื่นจากมือ)`);
+      
+      if(changeCard) {
+        // เปลี่ยนการ์ดใหม่จากกอง
+        changeCardFromDeck();
+        return;
+      } else {
+        // ให้เลือกการ์ดอื่นจากมือ
+        gameState.selectedCards = [];
+        updateDisplay();
+        return;
+      }
+    }
+  }
+  
+  placeTokens(card.cells, gameState.currentPlayer);
+  gameState.players[gameState.currentPlayer].hand.splice(cardIndex, 1);
+  gameState.selectedCards = [];
+  
+  const playerName = gameState.currentPlayer === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+  logMessage(`${playerName} วางการ์ดเซตเริ่มต้น: ${card.label}`);
+  
+  if(gameState.currentPlayer === 'black') {
+    gameState.currentPlayer = 'white';
+    updateDisplay();
+    
+    if (gameState.players.white.isAI) {
+      updateGameStatus('AI (ขาว) กำลังเลือกการ์ด...');
+      setTimeout(() => aiMove(), 400);
+    } else {
+      updateGameStatus('ผู้เล่นขาว: เลือกการ์ดเซต 1 ใบเพื่อวางเบี้ยเริ่มต้น (ต้องไม่ทับกับผู้เล่นดำ)');
+      enableButtons(['placeCardsBtn']);
+    }
+  } else {
+    // เริ่มเกมจริง
+    gameState.phase = 'playing';
+    gameState.turn = 1;
+    gameState.turnPhase = 'draw';
+    gameState.currentPlayer = 'black';
+    gameState.drawnThisTurn = false;
+    gameState.cardsPlacedThisTurn = { set: false, marker: false };
+    
+    logMessage('🎯 เริ่มเกมจริง! เทิร์นที่ 1 - ผู้เล่นดำ');
+    updateDisplay();
+    
+    if (gameState.players.black.isAI) {
+      updateGameStatus('AI (ดำ) เทิร์นแรก - กำลังคิด...');
+      setTimeout(() => aiMove(), 400);
+    } else {
+      updateGameStatus('ผู้เล่นดำ: จั่วการ์ด 1 ใบก่อน');
+      enableButtons(['drawSetBtn', 'drawMarkerBtn']);
+    }
+  }
+};
+
+// แสดง Modal เลือกการ์ดเซต
+const showSetSelectionModal = (markerCard) => {
+  const modal = document.getElementById('cardModal');
+  const title = document.getElementById('modalTitle');
+  const selection = document.getElementById('cardSelection');
+  
+  title.textContent = `เลือกการ์ดเซต 2 ใบสำหรับ ${markerCard.label}`;
+  selection.innerHTML = '';
+  
+  const setCards = gameState.players[gameState.currentPlayer].hand
+    .map((card, index) => ({card, index}))
+    .filter(item => item.card.type === 'set');
+  
+  let selectedSets = [];
+  
+  setCards.forEach(item => {
+    const cardElement = document.createElement('div');
+    cardElement.className = 'card set';
+    cardElement.onclick = () => {
+      const isSelected = selectedSets.includes(item.index);
+      if(isSelected) {
+        selectedSets = selectedSets.filter(i => i !== item.index);
+        cardElement.classList.remove('selected');
+      } else if(selectedSets.length < 2) {
+        selectedSets.push(item.index);
+        cardElement.classList.add('selected');
+      }
+    };
+    
+    // สร้างข้อความหลัก
+    const labelDiv = document.createElement('div');
+    labelDiv.textContent = item.card.label;
+    cardElement.appendChild(labelDiv);
+    
+    // แสดงรายละเอียดพื้นที่
+    const detailsDiv = document.createElement('div');
+    detailsDiv.className = 'card-details';
+    detailsDiv.textContent = `พื้นที่: ${item.card.cells.join(', ')}`;
+    cardElement.appendChild(detailsDiv);
+    
+    selection.appendChild(cardElement);
+  });
+  
+  document.getElementById('modalConfirm').onclick = () => {
+    if(selectedSets.length !== 2) {
+      alert('ต้องเลือกการ์ดเซต 2 ใบ!');
+      return;
+    }
+    
+    modal.style.display = 'none';
+    applyMarkerCard(markerCard, selectedSets);
+  };
+  
+  document.getElementById('modalCancel').onclick = () => {
+    modal.style.display = 'none';
+  };
+  
+  modal.style.display = 'block';
+};
+
+// ใช้การ์ดเซตกับเครื่องหมายควบคู่ (เมื่อมีการทับซ้อน)
+const applySetWithMarker = (setCard, markerCard, conflicts) => {
+  let resultCells = [];
+  const opponentColor = gameState.currentPlayer === 'black' ? 'white' : 'black';
+  
+  switch(markerCard.subtype) {
+    case 'union':
+      // Union: ยึดครองพื้นที่ทั้งหมดของการ์ดเซต + พื้นที่ที่เชื่อมต่อกันของฝั่งตรงข้าม
+      resultCells = [...setCard.cells];
+      
+      // หาพื้นที่ที่เชื่อมต่อกันของฝั่งตรงข้ามที่ติดกับพื้นที่ใหม่
+      const adjacentOpponentTokens = new Set();
+      setCard.cells.forEach(pos => {
+        const adjacent = getAdjacentCells(pos);
+        adjacent.forEach(adjPos => {
+          if (gameState.board[adjPos] === opponentColor) {
+            adjacentOpponentTokens.add(adjPos);
+          }
+        });
+      });
+      
+      // หาพื้นที่ที่เชื่อมต่อกันทั้งหมดของฝั่งตรงข้าม
+      if (adjacentOpponentTokens.size > 0) {
+        const connectedOpponentArea = getConnectedArea(Array.from(adjacentOpponentTokens), opponentColor);
+        resultCells = [...resultCells, ...connectedOpponentArea];
+      }
+      
+      // ลบค่าซ้ำ
+      resultCells = [...new Set(resultCells)];
+      break;
+      
+    case 'intersection':
+      // Intersection: ยึดครองเฉพาะส่วนที่ทับซ้อน (ปรับปรุงเสถียรภาพ)
+      resultCells = [...conflicts];
+      break;
+      
+    case 'difference':
+      // Difference: นำเบี้ยของฝั่งตรงข้ามในพื้นที่ทับซ้อนออกจากกระดาน โดยไม่ได้พื้นที่เพิ่ม
+      const overlappingOpponentCells = setCard.cells.filter(pos => 
+        gameState.board[pos] && gameState.board[pos] !== gameState.currentPlayer
+      );
+      
+      if (overlappingOpponentCells.length === 0) {
+        alert('ไม่มีเบี้ยของฝั่งตรงข้ามในพื้นที่นี้ที่จะลบได้!');
+        
+        // ลบการ์ดที่ใช้ทั้งสองใบแม้ไม่สำเร็จ
+        const setIndex = gameState.selectedCards.find(i => gameState.players[gameState.currentPlayer].hand[i].type === 'set');
+        const markerIndex = gameState.selectedCards.find(i => gameState.players[gameState.currentPlayer].hand[i].type === 'marker');
+        const allIndices = [setIndex, markerIndex].sort((a, b) => b - a);
+        allIndices.forEach(index => gameState.players[gameState.currentPlayer].hand.splice(index, 1));
+        
+        gameState.selectedCards = [];
+        updateDisplay();
+        return;
+      }
+      
+      // ลบเบี้ยของฝั่งตรงข้ามในพื้นที่ทับซ้อน
+      overlappingOpponentCells.forEach(pos => {
+        delete gameState.board[pos];
+        const cell = document.querySelector(`[data-position="${pos}"]`);
+        if(cell) {
+          cell.innerHTML = pos;
+          cell.style.backgroundColor = 'white';
+        }
+      });
+      
+      // อัพเดทจำนวนเบี้ยหลังลบ
+      updateTokenCounts();
+      
+      // ไม่ได้พื้นที่เพิ่ม - แค่ลบเบี้ยฝั่งตรงข้าม
+      resultCells = [];
+      break;
+  }
+  
+  // สำหรับ Difference ที่ไม่ได้พื้นที่เพิ่ม ให้ข้ามการตรวจสอบนี้
+  if(markerCard.subtype !== 'difference' && (!resultCells || resultCells.length === 0)) {
+    alert(`การดำเนินการ ${markerCard.label} กับ ${setCard.label} ไม่ได้ผลลัพธ์ช่องใดๆ!`);
+    return;
+  }
+  
+  // ตรวจสอบความถูกต้องของตำแหน่ง
+  const validCells = resultCells.filter(pos => {
+    const letter = pos.charAt(0);
+    const number = parseInt(pos.charAt(1));
+    return letter >= 'A' && letter <= 'H' && number >= 1 && number <= 8;
+  });
+  
+  if(validCells.length !== resultCells.length) {
+    alert('พบตำแหน่งที่ไม่ถูกต้องในการดำเนินการ!');
+    return;
+  }
+  
+  resultCells = validCells;
+  
+  // วางเบี้ยตามผลลัพธ์ (ยกเว้น Difference ที่ไม่ได้พื้นที่เพิ่ม)
+  if(markerCard.subtype !== 'difference') {
+    const originalTokens = resultCells.filter(pos => gameState.board[pos] === gameState.currentPlayer).length;
+    const capturedTokens = resultCells.filter(pos => gameState.board[pos] && gameState.board[pos] !== gameState.currentPlayer).length;
+    
+    resultCells.forEach(pos => {
+      gameState.board[pos] = gameState.currentPlayer;
+      const cell = document.querySelector(`[data-position="${pos}"]`);
+      if(cell) {
+        const chip = document.createElement('div');
+        chip.className = `chip ${gameState.currentPlayer}`;
+        chip.textContent = gameState.currentPlayer === 'black' ? '⚫' : '⚪';
+        cell.innerHTML = '';
+        cell.appendChild(chip);
+        
+        // เพิ่มสีพื้นหลังแสดงการครอบครอง
+        cell.style.backgroundColor = gameState.currentPlayer === 'black' ? '#f3f4f6' : '#fef3c7';
+      }
+    });
+    
+    updateTokenCounts();
+  }
+  gameState.cardsPlacedThisTurn.set = true;
+  gameState.cardsPlacedThisTurn.marker = true;
+  
+  // สำหรับ Difference จะมีการ log ข้อความแล้วในขั้นตอนการลบเบี้ย
+  if(markerCard.subtype !== 'difference') {
+    const playerName = gameState.currentPlayer === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+    let logMsg = `${playerName} ใช้ ${setCard.label} + ${markerCard.label} ได้ ${resultCells.length} ช่อง`;
+    if (markerCard.subtype === 'union' && capturedTokens > 0) {
+      logMsg += ` (รวมเบี้ยติดกัน ${capturedTokens} ช่อง)`;
+    }
+    logMessage(logMsg);
+  }
+  
+  // ลบการ์ดที่ใช้ทั้งสองใบ
+  const setIndex = gameState.selectedCards.find(i => gameState.players[gameState.currentPlayer].hand[i].type === 'set');
+  const markerIndex = gameState.selectedCards.find(i => gameState.players[gameState.currentPlayer].hand[i].type === 'marker');
+  const allIndices = [setIndex, markerIndex].sort((a, b) => b - a);
+  allIndices.forEach(index => gameState.players[gameState.currentPlayer].hand.splice(index, 1));
+  
+  gameState.selectedCards = [];
+  updateDisplay();
+  
+  updateGameStatus('กดข้ามเทิร์นเพื่อจบเทิร์น');
+  enableButtons(['skipTurnBtn']);
+};
+
+// ใช้การ์ดเครื่องหมาย
+const applyMarkerCard = (markerCard, setIndices) => {
+  const hand = gameState.players[gameState.currentPlayer].hand;
+  const set1 = hand[setIndices[0]];
+  const set2 = hand[setIndices[1]];
+  
+  let resultCells = [];
+  
+  try {
+    switch(markerCard.subtype) {
+      case 'union':
+        // Union: รวมพื้นที่ทั้งสองการ์ดเซต
+        const combinedCells = [...set1.cells, ...set2.cells];
+        resultCells = [...new Set(combinedCells)];
+        
+        // หาเบี้ยของฝั่งตรงข้ามที่อยู่ติดกับพื้นที่ใหม่
+        const opponentColor = gameState.currentPlayer === 'black' ? 'white' : 'black';
+        const adjacentOpponentTokens = new Set();
+        
+        resultCells.forEach(pos => {
+          const adjacent = getAdjacentCells(pos);
+          adjacent.forEach(adjPos => {
+            if (gameState.board[adjPos] === opponentColor) {
+              adjacentOpponentTokens.add(adjPos);
+            }
+          });
+        });
+        
+        // เพิ่มพื้นที่ที่เชื่อมต่อกันของฝั่งตรงข้าม
+        if (adjacentOpponentTokens.size > 0) {
+          const connectedOpponentArea = getConnectedArea(Array.from(adjacentOpponentTokens), opponentColor);
+          resultCells = [...new Set([...resultCells, ...connectedOpponentArea])];
+        }
+        break;
+        
+      case 'intersection':
+        // Intersection: พื้นที่ที่ทับซ้อนกัน (ปรับปรุงเสถียรภาพ)
+        resultCells = set1.cells.filter(cell => set2.cells.includes(cell));
+        if (resultCells.length === 0) {
+          throw new Error('ไม่มีพื้นที่ที่ทับซ้อนกัน');
+        }
+        break;
+        
+      case 'difference':
+        // Difference: นำเบี้ยของฝั่งตรงข้ามในพื้นที่ที่ทับซ้อนกันระหว่างเซต 1 และ เซต 2 ออกจากกระดาน โดยไม่ได้พื้นที่เพิ่ม
+        const opponentColorDiff = gameState.currentPlayer === 'black' ? 'white' : 'black';
+        
+        // หาพื้นที่ที่ทับซ้อนกันระหว่างเซต 1 และ เซต 2
+        const overlappingCells = set1.cells.filter(cell => set2.cells.includes(cell));
+        
+        if (overlappingCells.length === 0) {
+          throw new Error('ไม่มีพื้นที่ที่ทับซ้อนกันระหว่างการ์ดเซตทั้งสอง');
+        }
+        
+        // หาเบี้ยของฝั่งตรงข้ามในพื้นที่ที่ทับซ้อน
+        const opponentTokensInOverlap = overlappingCells.filter(pos => 
+          gameState.board[pos] === opponentColorDiff
+        );
+        
+        if (opponentTokensInOverlap.length === 0) {
+          throw new Error('ไม่มีเบี้ยของฝั่งตรงข้ามในพื้นที่ที่ทับซ้อนกัน');
+        }
+        
+        // ลบเบี้ยของฝั่งตรงข้ามในพื้นที่ที่ทับซ้อน
+        opponentTokensInOverlap.forEach(pos => {
+          delete gameState.board[pos];
+          const cell = document.querySelector(`[data-position="${pos}"]`);
+          if(cell) {
+            cell.innerHTML = pos;
+            cell.style.backgroundColor = 'white';
+          }
+        });
+        
+        // อัพเดทจำนวนเบี้ยหลังลบ
+        updateTokenCounts();
+        
+        // ไม่ได้พื้นที่เพิ่ม - แค่ลบเบี้ยฝั่งตรงข้าม
+        resultCells = [];
+        
+        // บันทึกการกระทำ
+        const playerName = gameState.currentPlayer === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+        logMessage(`${playerName} ใช้ ${markerCard.label} กับ ${set1.label} และ ${set2.label} ลบเบี้ยฝั่งตรงข้าม ${opponentTokensInOverlap.length} ช่อง: ${opponentTokensInOverlap.join(', ')}`);
+        break;
+        
+      case 'complement':
+        // Complement: ได้ทุกพื้นที่ยกเว้นพื้นที่ที่ระบุโดยการ์ดเซต
+        const allCells = [];
+        for (let row = 0; row < 8; row++) {
+          for (let col = 0; col < 8; col++) {
+            allCells.push(`${String.fromCharCode(65 + row)}${col + 1}`);
+          }
+        }
+        
+        // รวมการ์ดเซตทั้งสอง
+        const combinedSetCells = [...new Set([...set1.cells, ...set2.cells])];
+        
+        // หาพื้นที่ complement (ทุกที่ยกเว้นพื้นที่การ์ดเซต)
+        resultCells = allCells.filter(pos => !combinedSetCells.includes(pos));
+        break;
+        
+    }
+  } catch (error) {
+    alert(`การดำเนินการ ${markerCard.label} ไม่สามารถทำได้: ${error.message}`);
+    
+    // ลบการ์ดที่ใช้แม้ไม่สำเร็จ
+    const markerIndex = gameState.selectedCards.find(i => hand[i].type === 'marker');
+    const allIndices = [markerIndex, ...setIndices].sort((a, b) => b - a);
+    allIndices.forEach(index => hand.splice(index, 1));
+    
+    gameState.selectedCards = [];
+    updateDisplay();
+    return;
+  }
+  
+  // สำหรับ Difference ที่ไม่ได้พื้นที่เพิ่ม ให้ข้ามการตรวจสอบนี้
+  if(markerCard.subtype !== 'difference' && (!resultCells || resultCells.length === 0)) {
+    alert(`การดำเนินการ ${markerCard.label} ไม่ได้ผลลัพธ์ช่องใดๆ!`);
+    
+    // ลบการ์ดที่ใช้แม้ไม่สำเร็จ
+    const markerIndex = gameState.selectedCards.find(i => hand[i].type === 'marker');
+    const allIndices = [markerIndex, ...setIndices].sort((a, b) => b - a);
+    allIndices.forEach(index => hand.splice(index, 1));
+    
+    gameState.selectedCards = [];
+    updateDisplay();
+    return;
+  }
+  
+  // ตรวจสอบความถูกต้องของตำแหน่ง
+  const validCells = resultCells.filter(pos => {
+    if (typeof pos !== 'string' || pos.length !== 2) return false;
+    const letter = pos.charAt(0);
+    const number = parseInt(pos.charAt(1));
+    return letter >= 'A' && letter <= 'H' && number >= 1 && number <= 8;
+  });
+  
+  if(validCells.length !== resultCells.length) {
+    alert('พบตำแหน่งที่ไม่ถูกต้องในการดำเนินการ!');
+    
+    // ลบการ์ดที่ใช้แม้ไม่สำเร็จ
+    const markerIndex = gameState.selectedCards.find(i => hand[i].type === 'marker');
+    const allIndices = [markerIndex, ...setIndices].sort((a, b) => b - a);
+    allIndices.forEach(index => hand.splice(index, 1));
+    
+    gameState.selectedCards = [];
+    updateDisplay();
+    return;
+  }
+  
+  resultCells = validCells;
+  
+  // ตรวจสอบการทับซ้อน (ยกเว้น Union และ Difference ที่สามารถครอบครองได้)
+  if(markerCard.subtype !== 'difference') {
+    const conflicts = resultCells.filter(pos => gameState.board[pos] && gameState.board[pos] !== gameState.currentPlayer);
+    
+    if(conflicts.length > 0 && markerCard.subtype !== 'union') {
+      alert(`ไม่สามารถใช้การ์ด ${markerCard.label} ได้ เนื่องจากมีเบี้ยของฝั่งตรงข้ามอยู่ที่: ${conflicts.join(', ')}`);
+      
+      // ลบการ์ดที่ใช้แม้ไม่สำเร็จ
+      const markerIndex = gameState.selectedCards.find(i => hand[i].type === 'marker');
+      const allIndices = [markerIndex, ...setIndices].sort((a, b) => b - a);
+      allIndices.forEach(index => hand.splice(index, 1));
+      
+      gameState.selectedCards = [];
+      updateDisplay();
+      return;
+    }
+  }
+  
+  // วางเบี้ยตามผลลัพธ์ (ยกเว้น Difference ที่ไม่ได้พื้นที่เพิ่ม)
+  if(markerCard.subtype !== 'difference') {
+    const originalTokens = resultCells.filter(pos => gameState.board[pos] === gameState.currentPlayer).length;
+    const conflicts = resultCells.filter(pos => gameState.board[pos] && gameState.board[pos] !== gameState.currentPlayer);
+    const capturedTokens = conflicts.length;
+    
+    placeTokens(resultCells, gameState.currentPlayer);
+    
+    const playerName = gameState.currentPlayer === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+    let logMsg = `${playerName} ใช้ ${markerCard.label} กับ ${set1.label} และ ${set2.label} ได้ ${resultCells.length} ช่อง`;
+    if (markerCard.subtype === 'union' && capturedTokens > 0) {
+      logMsg += ` (ยึดครอง ${capturedTokens} ช่อง)`;
+    }
+    logMessage(logMsg);
+  }
+  
+  gameState.cardsPlacedThisTurn.marker = true;
+  
+  // ลบการ์ดที่ใช้
+  const markerIndex = gameState.selectedCards.find(i => hand[i].type === 'marker');
+  const allIndices = [markerIndex, ...setIndices].sort((a, b) => b - a);
+  allIndices.forEach(index => hand.splice(index, 1));
+  
+  gameState.selectedCards = [];
+  updateDisplay();
+  
+  // ตรวจสอบว่าสามารถลงการ์ดเพิ่มได้หรือไม่
+  const canPlaceMore = !gameState.cardsPlacedThisTurn.set && hand.some(c => c.type === 'set');
+  
+  if(canPlaceMore) {
+    updateGameStatus('สามารถลงการ์ดเซตได้อีก 1 ใบ หรือเลือกทิ้งการ์ด/ข้ามเทิร์น');
+    enableButtons(['placeCardsBtn', 'discardBtn', 'skipTurnBtn']);
+  } else {
+    // จบเทิร์นทันทีเมื่อใช้การ์ดเครื่องหมายแล้ว
+    setTimeout(() => {
+      skipTurn();
+    }, 1000);
+    updateGameStatus('ใช้การ์ดเครื่องหมายแล้ว - จะจบเทิร์นในอีก 1 วินาที...');
+    enableButtons([]);
+  }
+};
+
+// ทิ้งการ์ด
+const discardCard = () => {
+  if(gameState.turnPhase !== 'action') {
+    alert('ต้องจั่วการ์ดก่อนทิ้งการ์ด!');
+    return;
+  }
+  
+  if(gameState.selectedCards.length !== 1) {
+    alert('เลือกการ์ด 1 ใบที่ต้องการทิ้ง!');
+    return;
+  }
+  
+  const cardIndex = gameState.selectedCards[0];
+  const card = gameState.players[gameState.currentPlayer].hand[cardIndex];
+  
+  gameState.players[gameState.currentPlayer].hand.splice(cardIndex, 1);
+  gameState.selectedCards = [];
+  
+  const playerName = getPlayerName(gameState.currentPlayer);
+  logMessage(`${playerName} ทิ้งการ์ด: ${card.label}`);
+  
+  updateDisplay();
+  
+  // จบเทิร์นทันทีหลังทิ้งการ์ด
+  const delay = gameState.players[gameState.currentPlayer].isAI ? 300 : 1000;
+  setTimeout(() => {
+    skipTurn();
+  }, delay);
+  
+  const message = gameState.players[gameState.currentPlayer].isAI ?
+    'AI ทิ้งการ์ดแล้ว - กำลังจบเทิร์น...' :
+    'ทิ้งการ์ดแล้ว - จะจบเทิร์นในอีก 1 วินาที...';
+  updateGameStatus(message);
+  enableButtons([]);
+};
+
+// ข้ามเทิร์น
+const skipTurn = () => {
+  if(gameState.phase === 'playing' && gameState.turnPhase === 'draw' && !gameState.drawnThisTurn) {
+    alert('ต้องจั่วการ์ดก่อนข้ามเทิร์น!');
+    return;
+  }
+  
+  const playerName = gameState.currentPlayer === 'black' ? 'ผู้เล่นดำ' : 'ผู้เล่นขาว';
+  
+  if(gameState.phase === 'playing') {
+    // ถ้าอยู่ในช่วง action ให้จบเทิร์นทันที
+    if(gameState.turnPhase === 'action') {
+      logMessage(`${playerName} ข้ามการใช้สิทธิ์`);
+    } else {
+      logMessage(`${playerName} จบเทิร์น`);
+    }
+    
+    logMessage(`${playerName} จบเทิร์น`);
+    
+    // เปลี่ยนผู้เล่น
+    gameState.currentPlayer = gameState.currentPlayer === 'black' ? 'white' : 'black';
+    if(gameState.currentPlayer === 'black') {
+      gameState.turn++;
+    }
+    
+    // ตรวจสอบจบเกม
+    if(gameState.turn > 20) {
+      endGame();
+      return;
+    }
+    
+    // รีเซ็ตสถานะเทิร์น
+    gameState.turnPhase = 'draw';
+    gameState.drawnThisTurn = false;
+    gameState.cardsPlacedThisTurn = { set: false, marker: false };
+    gameState.selectedCards = [];
+    
+    updateDisplay();
+    
+    const nextPlayerName = getPlayerName(gameState.currentPlayer);
+    
+    if (gameState.players[gameState.currentPlayer].isAI) {
+      updateGameStatus(`${nextPlayerName} กำลังคิด...`);
+      setTimeout(() => aiMove(), 300); // ลดเป็น 300ms เท่านั้น
+    } else {
+      updateGameStatus(`${nextPlayerName}: จั่วการ์ด 1 ใบก่อน`);
+      enableButtons(['drawSetBtn', 'drawMarkerBtn']);
+    }
+  }
+};
+
+// จบเกม
+const endGame = () => {
+  gameState.phase = 'finished';
+  
+  const blackScore = calculateScore('black');
+  const whiteScore = calculateScore('white');
+  
+  const blackPlayerName = getPlayerName('black');
+  const whitePlayerName = getPlayerName('white');
+  
+  let winner, message;
+  if(blackScore > whiteScore) {
+    winner = `${blackPlayerName}ชนะ!`;
+    message = `🎉 ${blackPlayerName}ชนะ! (${blackScore} > ${whiteScore})`;
+  } else if(whiteScore > blackScore) {
+    winner = `${whitePlayerName}ชนะ!`;
+    message = `🎉 ${whitePlayerName}ชนะ! (${whiteScore} > ${blackScore})`;
+  } else {
+    winner = 'เสมอกัน!';
+    message = `🤝 เสมอกัน! (${blackScore} = ${whiteScore})`;
+  }
+  
+  logMessage('🏁 จบเกม! ผลการแข่งขัน:');
+  logMessage(`   ${blackPlayerName}: ${blackScore} คะแนน (เบี้ย ${gameState.players.black.tokens} - การ์ด ${gameState.players.black.hand.length})`);
+  logMessage(`   ${whitePlayerName}: ${whiteScore} คะแนน (เบี้ย ${gameState.players.white.tokens} - การ์ด ${gameState.players.white.hand.length})`);
+  logMessage(message);
+  
+  updateDisplay();
+  updateGameStatus('เกมจบแล้ว! กดเริ่มเกมใหม่เพื่อเล่นอีกครั้ง');
+  enableButtons([]);
+};
+
+// Event Listeners
+document.getElementById('newGameBtn').onclick = startNewGame;
+document.getElementById('drawSetBtn').onclick = drawSetCard;
+document.getElementById('drawMarkerBtn').onclick = drawMarkerCard;
+document.getElementById('placeCardsBtn').onclick = placeCards;
+document.getElementById('discardBtn').onclick = discardCard;
+document.getElementById('skipTurnBtn').onclick = skipTurn;
+
+// ฟังก์ชันแสดง/ซ่อนข้อมูลการ์ด
+const toggleCardInfo = () => {
+  const content = document.getElementById('card-info-content');
+  const icon = document.getElementById('toggle-icon');
+  const text = document.getElementById('toggle-text');
+  
+  if (content.classList.contains('show')) {
+    content.classList.remove('show');
+    icon.textContent = '👁️';
+    text.textContent = 'แสดงข้อมูลการ์ด';
+  } else {
+    content.classList.add('show');
+    icon.textContent = '🙈';
+    text.textContent = 'ซ่อนข้อมูลการ์ด';
+  }
+};
+
+// ฟังก์ชันอัพเดทการนับการ์ดคงเหลือ
+const updateCardCounts = () => {
+  const setElement = document.getElementById('remaining-set-cards');
+  const markerElement = document.getElementById('remaining-marker-cards');
+  
+  if (setElement && gameState && gameState.deckSet) {
+    setElement.textContent = `เหลือในเด็ค: ${gameState.deckSet.length} ใบ`;
+  }
+  
+  if (markerElement && gameState && gameState.deckMarker) {
+    markerElement.textContent = `เหลือในเด็ค: ${gameState.deckMarker.length} ใบ`;
+  }
+};
+
+// AI Logic
+const aiMove = () => {
+  if (gameState.phase === 'finished' || !gameState.players[gameState.currentPlayer].isAI) {
+    return;
+  }
+  
+  if (gameState.phase === 'pregame') {
+    aiPregameMove();
+  } else if (gameState.phase === 'playing') {
+    aiPlayingMove();
+  }
+};
+
+const aiPregameMove = () => {
+  const currentPlayerHand = gameState.players[gameState.currentPlayer].hand;
+  let setCards = currentPlayerHand.filter(c => c.type === 'set' && c.cells && c.cells.length > 0);
+  
+  if (setCards.length > 0) {
+    // หาการ์ดที่ไม่ซ้ำกับที่มีอยู่บนกระดาน (สำหรับผู้เล่นที่สอง)
+    let validCard = null;
+    let cardIndex = -1;
+    
+    if (gameState.currentPlayer === 'white') {
+      // ผู้เล่นที่สองต้องหาการ์ดที่ไม่ซ้ำ
+      for (let i = 0; i < setCards.length; i++) {
+        const card = setCards[i];
+        const conflicts = card.cells.filter(pos => gameState.board[pos]);
+        
+        if (conflicts.length === 0) {
+          validCard = card;
+          cardIndex = currentPlayerHand.indexOf(card);
+          break;
+        }
+      }
+      
+      // ถ้าไม่มีการ์ดที่เหมาะสม ให้เปลี่ยนการ์ด
+      if (!validCard) {
+        const firstCard = setCards[0];
+        cardIndex = currentPlayerHand.indexOf(firstCard);
+        gameState.selectedCards = [cardIndex];
+        
+        // AI เปลี่ยนการ์ดทันที
+        changeCardFromDeck();
+        return;
+      }
+    } else {
+      // ผู้เล่นแรก เลือกการ์ดใดก็ได้
+      validCard = setCards[0];
+      cardIndex = currentPlayerHand.indexOf(validCard);
+    }
+    
+    // จำลองการเลือกการ์ด
+    gameState.selectedCards = [cardIndex];
+    
+    // AI ทำได้เลยไม่ต้องรอ
+    placePregameCard();
+  }
+};
+
+const aiPlayingMove = () => {
+  if (gameState.turnPhase === 'draw') {
+    // AI เลือกจั่วการ์ดอย่างชาญฉลาด
+    const decision = makeSmartDrawDecision();
+    const playerName = getPlayerName(gameState.currentPlayer);
+    
+    setTimeout(() => {
+      if (decision === 'marker' && gameState.deckMarker.length > 0) {
+        logMessage(`${playerName} ตัดสินใจจั่วการ์ดเครื่องหมาย (ต้องการมาร์คเกอร์)`);
+        drawMarkerCard();
+      } else if (decision === 'set' && gameState.deckSet.length > 0) {
+        logMessage(`${playerName} ตัดสินใจจั่วการ์ดเซต (ต้องการพื้นที่เพิ่ม)`);
+        drawSetCard();
+      } else {
+        // ไม่มีการ์ดหรือไม่คุ้ม
+        logMessage(`${playerName} ไม่มีการ์ดให้จั่ว - ข้ามเทิร์น`);
+        skipTurn();
+      }
+    }, 200);
+    
+  } else if (gameState.turnPhase === 'action') {
+    // AI เลือกการกระทำที่ดีที่สุด
+    const bestAction = chooseBestAction();
+    
+    setTimeout(() => {
+      executeBestAction(bestAction);
+    }, 300);
+  }
+};
+
+// ฟังก์ชันตัดสินใจจั่วการ์ด
+const makeSmartDrawDecision = () => {
+  const currentPlayerHand = gameState.players[gameState.currentPlayer].hand;
+  const setCards = currentPlayerHand.filter(c => c.type === 'set');
+  const markerCards = currentPlayerHand.filter(c => c.type === 'marker');
+  
+  // ถ้ามีการ์ดเซตแล้ว แต่ไม่มีการ์ดเครื่องหมาย ควรจั่วมาร์คเกอร์
+  if (setCards.length > 0 && markerCards.length === 0 && gameState.deckMarker.length > 0) {
+    return 'marker';
+  }
+  
+  // ถ้ามีการ์ดเครื่องหมายแล้ว แต่การ์ดเซตน้อย ควรจั่วเซต
+  if (markerCards.length > 0 && setCards.length < 2 && gameState.deckSet.length > 0) {
+    return 'set';
+  }
+  
+  // กรณีอื่นๆ เลือกตามโอกาส
+  if (gameState.deckSet.length > gameState.deckMarker.length) {
+    return 'set';
+  } else if (gameState.deckMarker.length > 0) {
+    return 'marker';
+  } else {
+    return 'set';
+  }
+};
+
+// ฟังก์ชันเลือกการกระทำที่ดีที่สุด
+const chooseBestAction = () => {
+  const currentPlayerHand = gameState.players[gameState.currentPlayer].hand;
+  const setCards = currentPlayerHand.filter(c => c.type === 'set');
+  const markerCards = currentPlayerHand.filter(c => c.type === 'marker');
+  
+  // ประเมินตัวเลือกต่างๆ
+  const actions = [];
+  
+  // 1. ลงการ์ดเซตธรรมดา (ไม่ซ้ำ)
+  if (!gameState.cardsPlacedThisTurn.set) {
+    setCards.forEach(card => {
+      if (card.subtype !== 'empty' && card.cells && card.cells.length > 0) {
+        const conflicts = card.cells.filter(pos => gameState.board[pos] && gameState.board[pos] !== gameState.currentPlayer);
+        if (conflicts.length === 0) {
+          // การ์ดที่ไม่ซ้ำ = คะแนนสูง
+          actions.push({
+            type: 'placeSet',
+            card: card,
+            score: card.cells.length * 10, // คะแนนตามจำนวนช่อง
+            cardIndex: currentPlayerHand.indexOf(card)
+          });
+        }
+      }
+    });
+  }
+  
+  // 2. ลงการ์ดเซต + มาร์คเกอร์ (เมื่อมีการซ้ำ)
+  if (!gameState.cardsPlacedThisTurn.set && markerCards.length > 0) {
+    setCards.forEach(setCard => {
+      if (setCard.subtype !== 'empty' && setCard.cells && setCard.cells.length > 0) {
+        const conflicts = setCard.cells.filter(pos => gameState.board[pos] && gameState.board[pos] !== gameState.currentPlayer);
+        if (conflicts.length > 0) {
+          markerCards.forEach(markerCard => {
+            const comboScore = evaluateSetMarkerCombo(setCard, markerCard);
+            if (comboScore > 0) {
+              actions.push({
+                type: 'placeSetWithMarker',
+                setCard: setCard,
+                markerCard: markerCard,
+                score: comboScore,
+                setIndex: currentPlayerHand.indexOf(setCard),
+                markerIndex: currentPlayerHand.indexOf(markerCard)
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+  
+  // 3. ทิ้งการ์ดที่ไม่ดี
+  const badCards = currentPlayerHand.filter(card => {
+    if (card.type === 'set' && card.subtype === 'empty') return true; // Empty Set ยาก
+    if (card.type === 'set' && (!card.cells || card.cells.length <= 1)) return true; // การ์ดเล็ก
+    return false;
+  });
+  
+  if (badCards.length > 0) {
+    actions.push({
+      type: 'discard',
+      card: badCards[0],
+      score: 5, // คะแนนต่ำ แต่เป็นทางเลือก
+      cardIndex: currentPlayerHand.indexOf(badCards[0])
+    });
+  }
+  
+  // 4. ข้ามเทิร์น (ตัวเลือกสุดท้าย)
+  actions.push({
+    type: 'skip',
+    score: 1
+  });
+  
+  // เลือกการกระทำที่ได้คะแนนสูงสุด
+  return actions.sort((a, b) => b.score - a.score)[0];
+};
+
+// ประเมินคะแนนของการรวมกันระหว่างเซตและมาร์คเกอร์
+const evaluateSetMarkerCombo = (setCard, markerCard) => {
+  if (!setCard.cells || setCard.cells.length === 0) return 0;
+  
+  let score = setCard.cells.length * 5; // คะแนนพื้นฐานจากขนาด
+  
+  // โบนัสตามประเภทมาร์คเกอร์
+  switch (markerCard.subtype) {
+    case 'union':
+      score += 15; // Union ให้พื้นที่เพิ่ม
+      break;
+    case 'intersection':
+      score += 10; // Intersection ปานกลาง
+      break;
+    case 'difference':
+      score += 12; // Difference ลบเบี้ยคู่แข่ง
+      break;
+    case 'complement':
+      score += 8; // Complement ยาวนาน
+      break;
+  }
+  
+  return score;
+};
+
+// ดำเนินการตามการกระทำที่เลือก
+const executeBestAction = (action) => {
+  // แสดงความคิดของ AI
+  const playerName = getPlayerName(gameState.currentPlayer);
+  
+  switch (action.type) {
+    case 'placeSet':
+      logMessage(`${playerName} เลือกลงการ์ดเซต: ${action.card.label} (คะแนน ${action.score})`);
+      gameState.selectedCards = [action.cardIndex];
+      placeCards();
+      break;
+      
+    case 'placeSetWithMarker':
+      logMessage(`${playerName} เลือกลงการ์ดเซต + มาร์คเกอร์: ${action.setCard.label} + ${action.markerCard.label} (คะแนน ${action.score})`);
+      gameState.selectedCards = [action.setIndex, action.markerIndex];
+      placeCards();
+      break;
+      
+    case 'discard':
+      logMessage(`${playerName} เลือกทิ้งการ์ด: ${action.card.label} (การ์ดไม่ดี)`);
+      gameState.selectedCards = [action.cardIndex];
+      discardCard();
+      break;
+      
+    case 'skip':
+    default:
+      logMessage(`${playerName} เลือกข้ามเทิร์น (ไม่มีการ์ดที่เหมาะสม)`);
+      skipTurn();
+      break;
+  }
+};
+
+// เริ่มต้น
+createBoard();
+updateDisplay();
+enableButtons([]);
+
+</script>
+</body>
+</html>
