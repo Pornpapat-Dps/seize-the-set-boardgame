@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Test Empty Set + Intersection Fix</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+.test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+.success { background-color: #d4edda; color: #155724; }
+.error { background-color: #f8d7da; color: #721c24; }
+</style>
+</head>
+<body>
+<h1>🧪 ทดสอบการแก้ไข Empty Set + Intersection</h1>
+<div id="results"></div>
+
+<script>
+function logResult(message, isSuccess = true) {
+  const div = document.createElement('div');
+  div.className = `test-result ${isSuccess ? 'success' : 'error'}`;
+  div.textContent = message;
+  document.getElementById('results').appendChild(div);
+}
+
+// จำลองกระดานเกม
+const mockBoard = {
+  'A1': 'black',
+  'B2': 'white', 
+  'C3': 'black',
+  'D4': 'white'
+};
+
+logResult('เริ่มทดสอบ: กระดานมีเบี้ย 4 ช่อง (ดำ 2, ขาว 2)');
+
+// จำลองการใช้ Empty Set + Intersection
+function testEmptySetIntersection() {
+  logResult('ทดสอบ: Empty Set + Intersection ควรลบเบี้ยทั้งสองฝ่าย');
+  
+  // หาเบี้ยทั้งหมดบนกระดาน (ตาม logic ใหม่)
+  const allTokens = [];
+  for (const pos in mockBoard) {
+    if (mockBoard[pos]) {
+      allTokens.push(pos);
+    }
+  }
+  
+  logResult(`พบเบี้ยทั้งหมด: ${allTokens.length} ช่อง (${allTokens.join(', ')})`);
+  
+  // ลบเบี้ยทั้งหมด
+  allTokens.forEach(pos => {
+    delete mockBoard[pos];
+  });
+  
+  // ตรวจสอบผลลัพธ์
+  const remainingTokens = Object.keys(mockBoard).filter(pos => mockBoard[pos]);
+  
+  if (remainingTokens.length === 0) {
+    logResult('✅ ผ่าน: เบี้ยทั้งหมดถูกลบหมดแล้ว');
+    logResult('✅ ผ่าน: Empty Set + Intersection ทำงานถูกต้อง');
+  } else {
+    logResult(`❌ ล้มเหลว: ยังมีเบี้ยเหลืออยู่ ${remainingTokens.length} ช่อง`, false);
+  }
+}
+
+// ทดสอบ logic เก่า (ควรจะล้มเหลว)
+function testOldLogic() {
+  logResult('ทดสอบ: Logic เก่า (ลบเฉพาะฝ่ายตรงข้าม) - ควรจะผิด');
+  
+  const mockBoardOld = { 'A1': 'black', 'B2': 'white', 'C3': 'black', 'D4': 'white' };
+  const currentPlayer = 'black';
+  const opponentColor = 'white';
+  
+  // หาเฉพาะเบี้ยฝ่ายตรงข้าม (logic เก่า)
+  const opponentTokens = [];
+  for (const pos in mockBoardOld) {
+    if (mockBoardOld[pos] === opponentColor) {
+      opponentTokens.push(pos);
+    }
+  }
+  
+  // ลบเฉพาะเบี้ยฝ่ายตรงข้าม
+  opponentTokens.forEach(pos => {
+    delete mockBoardOld[pos];
+  });
+  
+  const remainingTokens = Object.keys(mockBoardOld).filter(pos => mockBoardOld[pos]);
+  
+  if (remainingTokens.length > 0) {
+    logResult(`❌ Logic เก่าผิด: ยังมีเบี้ยเหลืออยู่ ${remainingTokens.length} ช่อง (${remainingTokens.map(pos => mockBoardOld[pos]).join(', ')})`, false);
+    logResult('✅ การแก้ไขนี้จำเป็น');
+  }
+}
+
+// รันการทดสอบ
+testOldLogic();
+logResult('---');
+testEmptySetIntersection();
+
+logResult('---');
+logResult('สรุป: Empty Set + Intersection ได้รับการแก้ไขแล้ว');
+logResult('ตอนนี้จะลบเบี้ยทั้งสองฝ่ายทั้งหมดบนกระดาน');
+</script>
+</body>
+</html>

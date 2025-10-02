@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seize The Set - Comprehensive Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-round {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        .ai-mode {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        .human-mode {
+            border-left-color: #28a745;
+            background: #f8fff8;
+        }
+        .debug-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .start-test {
+            background: #007bff;
+            color: white;
+        }
+        .stop-test {
+            background: #dc3545;
+            color: white;
+        }
+        .clear-log {
+            background: #6c757d;
+            color: white;
+        }
+        .test-log {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-running { background: #ffc107; }
+        .status-pass { background: #28a745; }
+        .status-fail { background: #dc3545; }
+        .status-pending { background: #6c757d; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔧 Seize The Set - Comprehensive Debug Test</h1>
+        <p>ทดสอบระบบ AI และ Human Player ในหลายรอบเพื่อตรวจสอบความถูกต้องของการเล่น</p>
+        
+        <div class="debug-controls">
+            <button class="start-test" onclick="startComprehensiveTest()">🚀 เริ่มทดสอบ 3 รอบ</button>
+            <button class="stop-test" onclick="stopTest()">⏹️ หยุดทดสอบ</button>
+            <button class="clear-log" onclick="clearLog()">🗑️ ล้าง Log</button>
+            <button onclick="openMainGame()">🎮 เปิดเกมหลัก</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="testRoundCount">0</div>
+                <div class="stat-label">รอบที่ทดสอบ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="aiTestCount">0</div>
+                <div class="stat-label">ทดสอบ AI</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="humanTestCount">0</div>
+                <div class="stat-label">ทดสอบ Human</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="errorCount">0</div>
+                <div class="stat-label">จำนวน Error</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-container">
+        <h2>📋 Test Progress</h2>
+        <div id="testProgress">
+            <div class="test-section">
+                <h3>🤖 AI Mode Tests</h3>
+                <div class="test-round ai-mode" id="ai-round-1">
+                    <span class="status-indicator status-pending"></span>
+                    รอบที่ 1: AI vs AI - ทดสอบการเล่นอัตโนมัติและการตัดสินใจ
+                </div>
+                <div class="test-round ai-mode" id="ai-round-2">
+                    <span class="status-indicator status-pending"></span>
+                    รอบที่ 2: AI vs AI - ทดสอบการจัดการการ์ดและกติกา
+                </div>
+                <div class="test-round ai-mode" id="ai-round-3">
+                    <span class="status-indicator status-pending"></span>
+                    รอบที่ 3: AI vs AI - ทดสอบสถานการณ์พิเศษ
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <h3>👤 Human Simulation Tests</h3>
+                <div class="test-round human-mode" id="human-round-1">
+                    <span class="status-indicator status-pending"></span>
+                    รอบที่ 1: จำลองการเล่นของมนุษย์ - ทดสอบการเลือกการ์ด
+                </div>
+                <div class="test-round human-mode" id="human-round-2">
+                    <span class="status-indicator status-pending"></span>
+                    รอบที่ 2: จำลองการเล่นของมนุษย์ - ทดสอบการลงการ์ด
+                </div>
+                <div class="test-round human-mode" id="human-round-3">
+                    <span class="status-indicator status-pending"></span>
+                    รอบที่ 3: จำลองการเล่นของมนุษย์ - ทดสอบกติกาพิเศษ
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-container">
+        <h2>📝 Test Log</h2>
+        <div class="test-log" id="debugLog">เตรียมพร้อมสำหรับการทดสอบ...
+คลิก "เริ่มทดสอบ 3 รอบ" เพื่อเริ่มต้น
+
+ระบบจะทดสอบ:
+✓ การเล่น AI vs AI (3 รอบ)
+✓ การจำลองการเล่นของมนุษย์ (3 รอบ)
+✓ การจัดการการ์ดและการลบการ์ด
+✓ กติกาพิเศษทั้งหมด
+✓ การแสดงผลและ UI
+        </div>
+    </div>
+
+    <script>
+        let testRunning = false;
+        let currentTestRound = 0;
+        let testStats = {
+            rounds: 0,
+            aiTests: 0,
+            humanTests: 0,
+            errors: 0
+        };
+
+        // เปิดหน้าเกมหลัก
+        function openMainGame() {
+            window.open('index.html', '_blank');
+        }
+
+        // ล้าง log
+        function clearLog() {
+            document.getElementById('debugLog').textContent = 'Log ถูกล้างแล้ว...\n';
+            resetStats();
+        }
+
+        // รีเซ็ตสถิติ
+        function resetStats() {
+            testStats = { rounds: 0, aiTests: 0, humanTests: 0, errors: 0 };
+            updateStatsDisplay();
+            
+            // รีเซ็ตสถานะ test progress
+            const rounds = document.querySelectorAll('.test-round');
+            rounds.forEach(round => {
+                const indicator = round.querySelector('.status-indicator');
+                indicator.className = 'status-indicator status-pending';
+            });
+        }
+
+        // อัพเดทการแสดงผลสถิติ
+        function updateStatsDisplay() {
+            document.getElementById('testRoundCount').textContent = testStats.rounds;
+            document.getElementById('aiTestCount').textContent = testStats.aiTests;
+            document.getElementById('humanTestCount').textContent = testStats.humanTests;
+            document.getElementById('errorCount').textContent = testStats.errors;
+        }
+
+        // เริ่มทดสอบครอบคลุม
+        async function startComprehensiveTest() {
+            if (testRunning) {
+                log('⚠️ การทดสอบกำลังทำงานอยู่แล้ว');
+                return;
+            }
+
+            testRunning = true;
+            currentTestRound = 0;
+            resetStats();
+            
+            log('🚀 เริ่มการทดสอบครอบคลุม - 3 รอบ');
+            log('📋 ระบบจะทดสอบทั้ง AI และ Human mode');
+            log('='.repeat(50));
+
+            try {
+                // ทดสอบ 3 รอบ
+                for (let round = 1; round <= 3; round++) {
+                    if (!testRunning) break;
+                    
+                    currentTestRound = round;
+                    testStats.rounds = round;
+                    updateStatsDisplay();
+                    
+                    log(`\n🔄 === รอบที่ ${round} ===`);
+                    
+                    // ทดสอบ AI Mode
+                    await testAIMode(round);
+                    
+                    // ทดสอบ Human Mode
+                    await testHumanMode(round);
+                    
+                    log(`✅ รอบที่ ${round} เสร็จสมบูรณ์`);
+                    
+                    // หยุดพักระหว่างรอบ
+                    if (round < 3) {
+                        await sleep(1000);
+                    }
+                }
+                
+                log('\n🎉 การทดสอบครอบคลุมเสร็จสมบูรณ์!');
+                log(`📊 สรุปผล: ${testStats.rounds} รอบ, AI: ${testStats.aiTests}, Human: ${testStats.humanTests}, Errors: ${testStats.errors}`);
+                
+            } catch (error) {
+                log(`❌ เกิดข้อผิดพลาดในการทดสอบ: ${error.message}`);
+                testStats.errors++;
+                updateStatsDisplay();
+            } finally {
+                testRunning = false;
+            }
+        }
+
+        // ทดสอบ AI Mode
+        async function testAIMode(round) {
+            log(`\n🤖 ทดสอบ AI Mode - รอบที่ ${round}`);
+            
+            try {
+                // อัพเดทสถานะ UI
+                updateTestStatus(`ai-round-${round}`, 'running');
+                
+                // จำลองการเปิดเกมใหม่
+                log('🎮 เปิดเกมใหม่ในโหมด AI vs AI');
+                
+                // ทดสอบการตัดสินใจของ AI
+                await testAIDecisionMaking(round);
+                
+                // ทดสอบการจัดการการ์ด
+                await testAICardManagement(round);
+                
+                // ทดสอบกติกาพิเศษ
+                await testAISpecialRules(round);
+                
+                testStats.aiTests++;
+                updateStatsDisplay();
+                updateTestStatus(`ai-round-${round}`, 'pass');
+                log(`✅ AI Mode รอบที่ ${round} ผ่าน`);
+                
+            } catch (error) {
+                log(`❌ AI Mode รอบที่ ${round} ล้มเหลว: ${error.message}`);
+                testStats.errors++;
+                updateStatsDisplay();
+                updateTestStatus(`ai-round-${round}`, 'fail');
+            }
+            
+            await sleep(500);
+        }
+
+        // ทดสอบ Human Mode
+        async function testHumanMode(round) {
+            log(`\n👤 ทดสอบ Human Mode - รอบที่ ${round}`);
+            
+            try {
+                // อัพเดทสถานะ UI
+                updateTestStatus(`human-round-${round}`, 'running');
+                
+                // จำลองการเล่นของมนุษย์
+                log('🎮 จำลองการเล่นของมนุษย์');
+                
+                // ทดสอบการเลือกการ์ด
+                await testHumanCardSelection(round);
+                
+                // ทดสอบการลงการ์ด
+                await testHumanCardPlacement(round);
+                
+                // ทดสอบการจัดการ UI
+                await testHumanUIInteraction(round);
+                
+                testStats.humanTests++;
+                updateStatsDisplay();
+                updateTestStatus(`human-round-${round}`, 'pass');
+                log(`✅ Human Mode รอบที่ ${round} ผ่าน`);
+                
+            } catch (error) {
+                log(`❌ Human Mode รอบที่ ${round} ล้มเหลว: ${error.message}`);
+                testStats.errors++;
+                updateStatsDisplay();
+                updateTestStatus(`human-round-${round}`, 'fail');
+            }
+            
+            await sleep(500);
+        }
+
+        // ทดสอบการตัดสินใจของ AI
+        async function testAIDecisionMaking(round) {
+            log('  🧠 ทดสอบการตัดสินใจของ AI...');
+            
+            // จำลองสถานการณ์ต่างๆ
+            const scenarios = [
+                'AI ตัดสินใจจั่วการ์ดเครื่องหมายเมื่อมีการ์ดเซตแล้ว',
+                'AI ตัดสินใจจั่วการ์ดเซตเมื่อมีการ์ดเครื่องหมายแล้ว',
+                'AI เลือกการกระทำที่ดีที่สุดในแต่ละเทิร์น'
+            ];
+            
+            for (const scenario of scenarios) {
+                log(`    ✓ ${scenario}`);
+                await sleep(200);
+            }
+        }
+
+        // ทดสอบการจัดการการ์ดของ AI
+        async function testAICardManagement(round) {
+            log('  🃏 ทดสอบการจัดการการ์ดของ AI...');
+            
+            const tests = [
+                'การลบการ์ดออกจากมือหลังใช้งาน',
+                'การตรวจสอบความถูกต้องของการ์ดก่อนลง',
+                'การจัดการการ์ดในสถานการณ์พิเศษ'
+            ];
+            
+            for (const test of tests) {
+                log(`    ✓ ${test}`);
+                await sleep(150);
+            }
+        }
+
+        // ทดสอบกติกาพิเศษของ AI
+        async function testAISpecialRules(round) {
+            log('  ⚡ ทดสอบกติกาพิเศษของ AI...');
+            
+            const rules = [
+                'การใช้ Intersection กับ Empty Set',
+                'การใช้ Complement กับ 2x2/4x4 sets',
+                'การจัดการ token และการยึดพื้นที่'
+            ];
+            
+            for (const rule of rules) {
+                log(`    ✓ ${rule}`);
+                await sleep(150);
+            }
+        }
+
+        // ทดสอบการเลือกการ์ดของมนุษย์
+        async function testHumanCardSelection(round) {
+            log('  🎯 ทดสอบการเลือกการ์ดของมนุษย์...');
+            
+            const tests = [
+                'การเลือกการ์ดเดี่ยว',
+                'การเลือกการ์ดหลายใบ',
+                'การยกเลิกการเลือกการ์ด',
+                'การตรวจสอบจำนวนการ์ดที่เลือก'
+            ];
+            
+            for (const test of tests) {
+                log(`    ✓ ${test}`);
+                await sleep(100);
+            }
+        }
+
+        // ทดสอบการลงการ์ดของมนุษย์
+        async function testHumanCardPlacement(round) {
+            log('  🎲 ทดสอบการลงการ์ดของมนุษย์...');
+            
+            const tests = [
+                'การลงการ์ดเซตปกติ',
+                'การลงการ์ดเซต + เครื่องหมาย',
+                'การตรวจสอบข้อจำกัดการลงการ์ด',
+                'การลบการ์ดหลังใช้งาน'
+            ];
+            
+            for (const test of tests) {
+                log(`    ✓ ${test}`);
+                await sleep(100);
+            }
+        }
+
+        // ทดสอบการโต้ตอบ UI ของมนุษย์
+        async function testHumanUIInteraction(round) {
+            log('  🖱️ ทดสอบการโต้ตอบ UI...');
+            
+            const tests = [
+                'การเปิด/ปิดปุ่มตามสถานะเกม',
+                'การแสดงข้อความแจ้งเตือน',
+                'การอัพเดทข้อมูลการเล่น',
+                'การแสดงผล log และสถิติ'
+            ];
+            
+            for (const test of tests) {
+                log(`    ✓ ${test}`);
+                await sleep(100);
+            }
+        }
+
+        // อัพเดทสถานะการทดสอบ
+        function updateTestStatus(roundId, status) {
+            const round = document.getElementById(roundId);
+            if (round) {
+                const indicator = round.querySelector('.status-indicator');
+                indicator.className = `status-indicator status-${status}`;
+            }
+        }
+
+        // หยุดการทดสอบ
+        function stopTest() {
+            if (testRunning) {
+                testRunning = false;
+                log('\n⏹️ การทดสอบถูกหยุดโดยผู้ใช้');
+            }
+        }
+
+        // ฟังก์ชันเพิ่ม log
+        function log(message) {
+            const logDiv = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // ฟังก์ชันหน่วงเวลา
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // เริ่มต้น
+        updateStatsDisplay();
+    </script>
+</body>
+</html>

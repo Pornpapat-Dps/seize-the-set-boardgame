@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>🧪 ทดสอบ Intersection + เซตว่าง</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5; 
+        }
+        .test-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            margin: 10px 0; 
+        }
+        .board { 
+            display: grid; 
+            grid-template-columns: repeat(8, 40px); 
+            gap: 2px; 
+            margin: 15px 0; 
+            justify-content: center;
+        }
+        .cell { 
+            width: 40px; 
+            height: 40px; 
+            border: 2px solid #ccc; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 12px;
+            background-color: white;
+        }
+        .black-token { 
+            background-color: #333; 
+            color: white; 
+            border-color: #000;
+        }
+        .white-token { 
+            background-color: #f0f0f0; 
+            color: #333; 
+            border-color: #999;
+        }
+        .result-panel { 
+            background-color: #e3f2fd; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 10px 0; 
+        }
+        .success { background-color: #d4edda; border-left: 4px solid #28a745; }
+        .error { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .log { 
+            background-color: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            font-size: 12px; 
+            max-height: 200px; 
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #666; }
+        .step { margin: 10px 0; padding: 10px; background-color: #fff3cd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 ทดสอบการทำงาน: Intersection + เซตว่าง</h1>
+    
+    <div class="test-container">
+        <h2>🎯 เป้าหมายการทดสอบ</h2>
+        <div class="step">
+            <strong>เมื่อใช้เซตว่าง (∅) กับ Intersection:</strong><br>
+            ✅ เบี้ยของฝ่ายตรงข้ามทั้งหมดควรถูกลบออกจากกระดาน<br>
+            ✅ เบี้ยของเราควรยังคงอยู่บนกระดาน<br>
+            ✅ ไม่มีการวางเบี้ยใหม่เพิ่มเติม
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>📋 สถานการณ์ทดสอบ</h2>
+        <div class="step">
+            <strong>ผู้เล่นปัจจุบัน:</strong> <span id="currentPlayer">ดำ (black)</span><br>
+            <strong>ฝ่ายตรงข้าม:</strong> <span id="opponentPlayer">ขาว (white)</span><br>
+            <strong>การ์ดที่ใช้:</strong> เซตว่าง (∅) + Intersection (∩)
+        </div>
+        
+        <button onclick="setupTestBoard()">🔄 ตั้งค่ากระดานใหม่</button>
+        <button onclick="runIntersectionTest()">▶️ ทดสอบ Intersection</button>
+        <button onclick="clearLog()">🗑️ ล้าง Log</button>
+    </div>
+    
+    <div class="test-container">
+        <h2>📊 กระดานก่อนการทดสอบ</h2>
+        <div id="beforeBoard" class="board"></div>
+        <div id="beforeStats" class="result-panel"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>📊 กระดานหลังการทดสอบ</h2>
+        <div id="afterBoard" class="board"></div>
+        <div id="afterStats" class="result-panel"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>📝 Log การทำงาน</h2>
+        <div id="testLog" class="log">พร้อมทดสอบ...\n</div>
+    </div>
+
+    <script>
+        let testBoard = {};
+        let originalBoard = {};
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('testLog');
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('testLog').textContent = 'Log ถูกล้างแล้ว...\n';
+        }
+        
+        function displayBoard(board, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const pos = `${String.fromCharCode(65 + row)}${col + 1}`;
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    if (board[pos] === 'black') {
+                        cell.classList.add('black-token');
+                        cell.textContent = '⚫';
+                        cell.title = `${pos}: ดำ`;
+                    } else if (board[pos] === 'white') {
+                        cell.classList.add('white-token');
+                        cell.textContent = '⚪';
+                        cell.title = `${pos}: ขาว`;
+                    } else {
+                        cell.textContent = pos;
+                        cell.title = `${pos}: ว่าง`;
+                    }
+                    
+                    container.appendChild(cell);
+                }
+            }
+        }
+        
+        function updateStats(board, containerId) {
+            const container = document.getElementById(containerId);
+            
+            const blackTokens = Object.keys(board).filter(pos => board[pos] === 'black');
+            const whiteTokens = Object.keys(board).filter(pos => board[pos] === 'white');
+            
+            container.innerHTML = `
+                <strong>📊 สถิติ:</strong><br>
+                🖤 เบี้ยดำ: ${blackTokens.length} ช่อง (${blackTokens.join(', ') || 'ไม่มี'})<br>
+                🤍 เบี้ยขาว: ${whiteTokens.length} ช่อง (${whiteTokens.join(', ') || 'ไม่มี'})<br>
+                📍 ช่องทั้งหมด: ${Object.keys(board).length} ช่อง
+            `;
+        }
+        
+        function setupTestBoard() {
+            log('🔄 กำลังตั้งค่ากระดานทดสอบใหม่...');
+            
+            // สร้างกระดานทดสอบที่มีเบี้ยทั้งสองสี
+            testBoard = {
+                'A1': 'black', 'A2': 'white', 'A3': 'black',
+                'B1': 'white', 'B2': 'black', 'B3': 'white',
+                'C1': 'black', 'C2': 'white', 'C3': 'black',
+                'D1': 'white', 'D2': 'black', 'D3': 'white',
+                'E1': 'black', 'E2': 'white'
+            };
+            
+            // สำรองกระดานเดิม
+            originalBoard = { ...testBoard };
+            
+            log(`✅ ตั้งค่ากระดานเสร็จแล้ว: ${Object.keys(testBoard).length} เบี้ย`);
+            
+            displayBoard(testBoard, 'beforeBoard');
+            updateStats(testBoard, 'beforeStats');
+            
+            // รีเซ็ตกระดานหลังการทดสอบ
+            displayBoard({}, 'afterBoard');
+            document.getElementById('afterStats').innerHTML = '<em>รอการทดสอบ...</em>';
+        }
+        
+        function runIntersectionTest() {
+            log('🧪 เริ่มทดสอบ Intersection + เซตว่าง');
+            
+            if (Object.keys(testBoard).length === 0) {
+                log('❌ กรุณาตั้งค่ากระดานก่อนทดสอบ');
+                return;
+            }
+            
+            // จำลองการตั้งค่าเกม
+            const currentPlayer = 'black';
+            const opponentColor = 'white';
+            
+            log(`👤 ผู้เล่นปัจจุบัน: ${currentPlayer}`);
+            log(`👤 ฝ่ายตรงข้าม: ${opponentColor}`);
+            
+            // นับเบี้ยก่อนการทำงาน
+            const blackBefore = Object.keys(testBoard).filter(pos => testBoard[pos] === 'black');
+            const whiteBefore = Object.keys(testBoard).filter(pos => testBoard[pos] === 'white');
+            
+            log(`📊 ก่อนทดสอบ: ดำ ${blackBefore.length} ช่อง, ขาว ${whiteBefore.length} ช่อง`);
+            
+            // จำลองการ์ดเซตว่าง
+            const setCard = { 
+                cells: [], 
+                label: 'Empty Set ∅',
+                subtype: 'empty'
+            };
+            
+            const markerCard = {
+                subtype: 'intersection',
+                label: 'Intersection ∩'
+            };
+            
+            log(`🃏 ใช้การ์ด: ${setCard.label} + ${markerCard.label}`);
+            
+            // จำลอง Logic ของ Intersection + เซตว่าง
+            if (!setCard.cells || setCard.cells.length === 0) {
+                log('✅ ตรวจพบเซตว่าง - เริ่มกระบวนการลบเบี้ยฝ่ายตรงข้าม');
+                
+                // หาเบี้ยฝ่ายตรงข้ามทั้งหมด
+                const opponentTokens = [];
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const pos = `${String.fromCharCode(65 + row)}${col + 1}`;
+                        if (testBoard[pos] === opponentColor) {
+                            opponentTokens.push(pos);
+                        }
+                    }
+                }
+                
+                log(`🎯 พบเบี้ยฝ่ายตรงข้าม: ${opponentTokens.length} ช่อง (${opponentTokens.join(', ')})`);
+                
+                if (opponentTokens.length === 0) {
+                    log('⚠️ ไม่มีเบี้ยฝ่ายตรงข้ามให้ลบ');
+                } else {
+                    // ลบเบี้ยฝ่ายตรงข้าม
+                    opponentTokens.forEach(pos => {
+                        log(`🗑️ ลบเบี้ยฝ่ายตรงข้ามที่ ${pos}`);
+                        delete testBoard[pos];
+                    });
+                    
+                    log(`✅ ลบเบี้ยฝ่ายตรงข้ามเสร็จแล้ว: ${opponentTokens.length} ช่อง`);
+                }
+            } else {
+                log('❌ ไม่ใช่เซตว่าง - การทดสอบไม่ถูกต้อง');
+                return;
+            }
+            
+            // ตรวจสอบผลลัพธ์
+            const blackAfter = Object.keys(testBoard).filter(pos => testBoard[pos] === 'black');
+            const whiteAfter = Object.keys(testBoard).filter(pos => testBoard[pos] === 'white');
+            
+            log(`📊 หลังทดสอบ: ดำ ${blackAfter.length} ช่อง, ขาว ${whiteAfter.length} ช่อง`);
+            
+            // ประเมินผลการทดสอบ
+            const blackPreserved = blackAfter.length === blackBefore.length;
+            const whiteRemoved = whiteAfter.length === 0 && whiteBefore.length > 0;
+            const success = blackPreserved && whiteRemoved;
+            
+            if (success) {
+                log('🎉 การทดสอบสำเร็จ! เบี้ยฝ่ายตรงข้ามถูกลบทั้งหมด และเบี้ยของเราคงอยู่');
+                document.getElementById('afterStats').className = 'result-panel success';
+            } else {
+                log('❌ การทดสอบล้มเหลว!');
+                if (!blackPreserved) {
+                    log(`   - เบี้ยดำไม่ได้ถูกรักษาไว้ (ก่อน: ${blackBefore.length}, หลัง: ${blackAfter.length})`);
+                }
+                if (!whiteRemoved) {
+                    log(`   - เบี้ยขาวไม่ถูกลบทั้งหมด (ก่อน: ${whiteBefore.length}, หลัง: ${whiteAfter.length})`);
+                }
+                document.getElementById('afterStats').className = 'result-panel error';
+            }
+            
+            // แสดงผลกระดานหลังการทดสอบ
+            displayBoard(testBoard, 'afterBoard');
+            updateStats(testBoard, 'afterStats');
+            
+            log(`📝 สรุป: ${success ? 'ผ่าน' : 'ไม่ผ่าน'} การทดสอบ`);
+        }
+        
+        // เริ่มต้นเมื่อโหลดหน้า
+        document.addEventListener('DOMContentLoaded', () => {
+            log('📱 หน้าทดสอบพร้อมใช้งาน');
+            setupTestBoard();
+        });
+    </script>
+</body>
+</html>

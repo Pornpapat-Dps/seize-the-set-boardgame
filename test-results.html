@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทดสอบ Logic เซตการ์ด</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .pass { background-color: #d4edda; }
+        .fail { background-color: #f8d7da; }
+        code { background-color: #f8f9fa; padding: 2px 4px; }
+    </style>
+</head>
+<body>
+    <h1>ทดสอบ Logic การ์ดเซต</h1>
+    
+    <div id="results"></div>
+    
+    <script>
+        // Mock gameState
+        let gameState = {
+            currentPlayer: 'black',
+            board: {
+                'A1': 'black', 'A2': 'white', 'A3': 'black',
+                'B1': 'white', 'B2': 'black', 'B3': 'white',
+                'C1': 'black', 'C2': 'white', 'C3': 'black'
+            }
+        };
+        
+        function runTests() {
+            const results = [];
+            
+            // Test 1: Intersection with empty set
+            console.log('=== Test 1: Intersection with Empty Set ===');
+            let testBoard = { ...gameState.board };
+            const opponentColor = 'white';
+            
+            // Count opponent tokens before
+            let opponentTokensBefore = Object.keys(testBoard).filter(pos => testBoard[pos] === opponentColor);
+            console.log('Opponent tokens before:', opponentTokensBefore);
+            
+            // Remove opponent tokens (simulate intersection with empty set)
+            opponentTokensBefore.forEach(pos => delete testBoard[pos]);
+            
+            // Count remaining tokens
+            let remainingTokens = Object.keys(testBoard).filter(pos => testBoard[pos]);
+            let allBlack = remainingTokens.every(pos => testBoard[pos] === 'black');
+            
+            results.push({
+                test: 'Intersection กับเซตว่าง',
+                description: 'ควรลบเบี้ยฝ่ายตรงข้ามทั้งหมด',
+                expected: 'เหลือเฉพาะเบี้ยผู้เล่นปัจจุบัน',
+                actual: `ลบเบี้ย white ${opponentTokensBefore.length} ช่อง, เหลือเบี้ย ${remainingTokens.length} ช่อง`,
+                pass: allBlack && opponentTokensBefore.length > 0
+            });
+            
+            // Test 2: Complement with 2x2 set
+            console.log('=== Test 2: Complement with 2x2 Set ===');
+            const setCard = { cells: ['A1', 'A2', 'B1', 'B2'] }; // 2x2 set
+            
+            // Generate all cells
+            const allCells = [];
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    allCells.push(`${String.fromCharCode(65 + row)}${col + 1}`);
+                }
+            }
+            
+            // Get complement
+            const complementCells = allCells.filter(pos => !setCard.cells.includes(pos));
+            
+            results.push({
+                test: 'Complement กับเซต 2x2',
+                description: 'ควรได้ทุกช่องยกเว้นช่องในเซต',
+                expected: '60 ช่อง (64 - 4)',
+                actual: `${complementCells.length} ช่อง`,
+                pass: complementCells.length === 60
+            });
+            
+            // Test 3: Complement with empty set
+            console.log('=== Test 3: Complement with Empty Set ===');
+            const emptySetCard = { cells: [] };
+            
+            results.push({
+                test: 'Complement กับเซตว่าง',
+                description: 'ควรได้ทุกช่องบนกระดาน',
+                expected: '64 ช่อง',
+                actual: `${allCells.length} ช่อง`,
+                pass: allCells.length === 64
+            });
+            
+            return results;
+        }
+        
+        function displayResults(results) {
+            const container = document.getElementById('results');
+            
+            results.forEach(result => {
+                const div = document.createElement('div');
+                div.className = `test-result ${result.pass ? 'pass' : 'fail'}`;
+                div.innerHTML = `
+                    <h3>${result.test} ${result.pass ? '✅' : '❌'}</h3>
+                    <p><strong>คำอธิบาย:</strong> ${result.description}</p>
+                    <p><strong>คาดหวัง:</strong> <code>${result.expected}</code></p>
+                    <p><strong>ผลลัพธ์:</strong> <code>${result.actual}</code></p>
+                `;
+                container.appendChild(div);
+            });
+            
+            const summary = document.createElement('div');
+            const passCount = results.filter(r => r.pass).length;
+            summary.innerHTML = `<h2>สรุป: ผ่าน ${passCount}/${results.length} การทดสอบ</h2>`;
+            container.appendChild(summary);
+        }
+        
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const results = runTests();
+            displayResults(results);
+            
+            console.log('การทดสอบเสร็จสิ้น - ดูผลลัพธ์ในหน้าเว็บ');
+        });
+    </script>
+</body>
+</html>

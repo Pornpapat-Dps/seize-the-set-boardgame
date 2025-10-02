@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>🎮 ทดสอบการลงการ์ดแบบจริง</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5; 
+        }
+        .game-panel { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        }
+        .hand { 
+            display: flex; 
+            gap: 10px; 
+            margin: 15px 0; 
+            flex-wrap: wrap;
+        }
+        .card { 
+            padding: 12px 16px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            background: white; 
+            cursor: pointer;
+            min-width: 120px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .card:hover { 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); 
+        }
+        .card.selected { 
+            border-color: #007bff; 
+            background-color: #e3f2fd; 
+            transform: translateY(-2px);
+        }
+        .card.set { border-left: 5px solid #28a745; }
+        .card.marker { border-left: 5px solid #dc3545; }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 5px; 
+            margin: 5px; 
+            cursor: pointer; 
+            font-size: 14px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { 
+            background-color: #6c757d; 
+            cursor: not-allowed; 
+        }
+        .status { 
+            background-color: #d1ecf1; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 10px 0; 
+            border-left: 4px solid #0ea5e9;
+        }
+        .log { 
+            background-color: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 5px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 11px; 
+            max-height: 400px; 
+            overflow-y: auto; 
+            white-space: pre-wrap;
+            border: 1px solid #dee2e6;
+        }
+        .error { color: #dc3545; font-weight: bold; }
+        .success { color: #28a745; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #666; margin-bottom: 10px; }
+        .test-scenario { 
+            background-color: #fff3cd; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 10px 0; 
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 ทดสอบการลงการ์ดและการลบการ์ด</h1>
+    
+    <div class="game-panel">
+        <h2>🎯 สถานการณ์ทดสอบ</h2>
+        <div class="test-scenario">
+            <strong>ปัญหาที่พบ:</strong> ลงการ์ดแล้วการ์ดไม่หายจากมือ<br>
+            <strong>การทดสอบ:</strong> จำลองการลงการ์ดเซต + เครื่องหมาย และตรวจสอบการลบการ์ด<br>
+            <strong>คาดหวัง:</strong> การ์ดที่ใช้แล้วควรหายจากมือผู้เล่น
+        </div>
+    </div>
+    
+    <div class="game-panel">
+        <h2>🃏 มือการ์ดปัจจุบัน</h2>
+        <div class="status">
+            <strong>จำนวนการ์ด:</strong> <span id="cardCount">0</span> ใบ |
+            <strong>การ์ดที่เลือก:</strong> <span id="selectedCount">0</span> ใบ |
+            <strong>ผู้เล่น:</strong> <span id="currentPlayer">ดำ</span>
+        </div>
+        <div id="playerHand" class="hand"></div>
+        <div>
+            <button onclick="resetHand()">🔄 รีเซ็ตมือการ์ด</button>
+            <button onclick="clearSelection()">❌ ยกเลิกการเลือก</button>
+        </div>
+    </div>
+    
+    <div class="game-panel">
+        <h2>⚙️ การทดสอบ</h2>
+        <div>
+            <button onclick="testNormalCardPlacement()" id="normalBtn">📋 ทดสอบลงการ์ดปกติ</button>
+            <button onclick="testEmptySetIntersection()" id="emptyBtn">🔥 ทดสอบ Empty Set + Intersection</button>
+            <button onclick="testSetComplement()" id="complementBtn">📐 ทดสอบ Set + Complement</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <button onclick="simulateGamePlacement()" style="background-color: #28a745;">🎮 จำลองการลงการ์ดในเกม</button>
+        </div>
+    </div>
+    
+    <div class="game-panel">
+        <h2>📝 Log การทำงาน</h2>
+        <div id="testLog" class="log">พร้อมทดสอบ...\n</div>
+        <button onclick="clearLog()">🗑️ ล้าง Log</button>
+    </div>
+
+    <script>
+        // จำลอง Game State
+        let testGameState = {
+            selectedCards: [],
+            cardsPlacedThisTurn: { set: false, marker: false },
+            players: {
+                black: { hand: [] }
+            },
+            currentPlayer: 'black',
+            board: {}
+        };
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('testLog');
+            const className = {
+                'error': 'error',
+                'success': 'success', 
+                'warning': 'warning',
+                'info': 'info'
+            }[type] || '';
+            
+            logElement.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+        
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = 'Log ถูกล้างแล้ว...\n';
+        }
+        
+        function updateDisplay() {
+            const hand = document.getElementById('playerHand');
+            hand.innerHTML = '';
+            
+            testGameState.players.black.hand.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${card.type}`;
+                cardElement.innerHTML = `
+                    <div><strong>${card.label}</strong></div>
+                    <div style="font-size: 11px; color: #666;">Index: ${index}</div>
+                `;
+                cardElement.onclick = () => selectCard(index);
+                
+                if (testGameState.selectedCards.includes(index)) {
+                    cardElement.classList.add('selected');
+                }
+                
+                hand.appendChild(cardElement);
+            });
+            
+            // อัปเดตสถานะ
+            document.getElementById('cardCount').textContent = testGameState.players.black.hand.length;
+            document.getElementById('selectedCount').textContent = testGameState.selectedCards.length;
+            
+            // อัปเดตปุ่ม
+            const hasSet = testGameState.selectedCards.some(i => testGameState.players.black.hand[i]?.type === 'set');
+            const hasMarker = testGameState.selectedCards.some(i => testGameState.players.black.hand[i]?.type === 'marker');
+            
+            document.getElementById('normalBtn').disabled = testGameState.selectedCards.length === 0;
+            document.getElementById('emptyBtn').disabled = !hasSet || !hasMarker;
+            document.getElementById('complementBtn').disabled = !hasSet || !hasMarker;
+        }
+        
+        function selectCard(index) {
+            const cardIndex = testGameState.selectedCards.indexOf(index);
+            if (cardIndex === -1) {
+                testGameState.selectedCards.push(index);
+                const card = testGameState.players.black.hand[index];
+                log(`✅ เลือกการ์ด: ${card.label} (index: ${index})`, 'info');
+            } else {
+                testGameState.selectedCards.splice(cardIndex, 1);
+                log(`❌ ยกเลิกการเลือกการ์ด index: ${index}`, 'warning');
+            }
+            updateDisplay();
+        }
+        
+        function clearSelection() {
+            testGameState.selectedCards = [];
+            log('🔄 ยกเลิกการเลือกทั้งหมด', 'warning');
+            updateDisplay();
+        }
+        
+        function resetHand() {
+            testGameState.players.black.hand = [
+                { type: 'set', subtype: 'empty', label: 'Empty Set ∅', cells: [] },
+                { type: 'set', subtype: '2x2', label: 'Set 2x2 (A1-B2)', cells: ['A1', 'A2', 'B1', 'B2'] },
+                { type: 'set', subtype: '4x4', label: 'Set 4x4 (A1-D4)', cells: ['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'C1', 'C2', 'C3', 'C4', 'D1', 'D2', 'D3', 'D4'] },
+                { type: 'marker', subtype: 'intersection', label: 'Intersection ∩' },
+                { type: 'marker', subtype: 'complement', label: 'Complement ᶜ' },
+                { type: 'marker', subtype: 'union', label: 'Union ∪' },
+                { type: 'set', subtype: 'line', label: 'Line Set (C1-C4)', cells: ['C1', 'C2', 'C3', 'C4'] }
+            ];
+            testGameState.selectedCards = [];
+            testGameState.cardsPlacedThisTurn = { set: false, marker: false };
+            log('🔄 รีเซ็ตมือการ์ด: เพิ่มการ์ด 7 ใบ', 'success');
+            updateDisplay();
+        }
+        
+        function testCardRemoval(scenario) {
+            log(`🧪 เริ่มทดสอบ: ${scenario}`, 'info');
+            log(`📊 ก่อนลบ: ${testGameState.players.black.hand.length} ใบ`, 'info');
+            log(`🎯 การ์ดที่เลือก: [${testGameState.selectedCards.join(', ')}]`, 'info');
+            
+            // แสดงการ์ดที่เลือก
+            testGameState.selectedCards.forEach(index => {
+                const card = testGameState.players.black.hand[index];
+                if (card) {
+                    log(`   - Index ${index}: ${card.label} (${card.type})`, 'info');
+                } else {
+                    log(`   - Index ${index}: ไม่พบการ์ด!`, 'error');
+                }
+            });
+            
+            // จำลองการลบการ์ดแบบ applySetWithMarker/applyEmptySetWithMarker
+            const setIndex = testGameState.selectedCards.find(i => 
+                testGameState.players.black.hand[i]?.type === 'set'
+            );
+            const markerIndex = testGameState.selectedCards.find(i => 
+                testGameState.players.black.hand[i]?.type === 'marker'
+            );
+            
+            log(`🔍 ค้นหาการ์ด: setIndex=${setIndex}, markerIndex=${markerIndex}`, 'info');
+            
+            if (setIndex === undefined || markerIndex === undefined) {
+                log('❌ ไม่พบการ์ดที่ต้องการ!', 'error');
+                return false;
+            }
+            
+            // ลบการ์ดตามลำดับ (จากมากไปน้อย)
+            const allIndices = [setIndex, markerIndex].sort((a, b) => b - a);
+            log(`🗑️ จะลบการ์ด index: [${allIndices.join(', ')}]`, 'warning');
+            
+            allIndices.forEach(index => {
+                const card = testGameState.players.black.hand[index];
+                if (card) {
+                    log(`   ✂️ ลบ: ${card.label} (index: ${index})`, 'success');
+                    testGameState.players.black.hand.splice(index, 1);
+                } else {
+                    log(`   ❌ ไม่พบการ์ด index: ${index}`, 'error');
+                }
+            });
+            
+            testGameState.selectedCards = [];
+            testGameState.cardsPlacedThisTurn.set = true;
+            testGameState.cardsPlacedThisTurn.marker = true;
+            
+            log(`📊 หลังลบ: ${testGameState.players.black.hand.length} ใบ`, 'success');
+            log(`✅ การทดสอบ "${scenario}" เสร็จสิ้น`, 'success');
+            
+            updateDisplay();
+            return true;
+        }
+        
+        function testNormalCardPlacement() {
+            if (testGameState.selectedCards.length === 0) {
+                log('❌ กรุณาเลือกการ์ดก่อน', 'error');
+                return;
+            }
+            testCardRemoval('การลงการ์ดปกติ');
+        }
+        
+        function testEmptySetIntersection() {
+            // เลือก Empty Set + Intersection อัตโนมัติ
+            const emptyIndex = testGameState.players.black.hand.findIndex(card => card.subtype === 'empty');
+            const intersectionIndex = testGameState.players.black.hand.findIndex(card => card.subtype === 'intersection');
+            
+            if (emptyIndex === -1 || intersectionIndex === -1) {
+                log('❌ ไม่พบ Empty Set หรือ Intersection', 'error');
+                return;
+            }
+            
+            testGameState.selectedCards = [emptyIndex, intersectionIndex];
+            log('🎯 เลือกการ์ด: Empty Set + Intersection', 'info');
+            updateDisplay();
+            
+            setTimeout(() => {
+                testCardRemoval('Empty Set + Intersection');
+            }, 500);
+        }
+        
+        function testSetComplement() {
+            // เลือก Set 2x2 + Complement อัตโนมัติ
+            const setIndex = testGameState.players.black.hand.findIndex(card => card.subtype === '2x2');
+            const complementIndex = testGameState.players.black.hand.findIndex(card => card.subtype === 'complement');
+            
+            if (setIndex === -1 || complementIndex === -1) {
+                log('❌ ไม่พบ Set 2x2 หรือ Complement', 'error');
+                return;
+            }
+            
+            testGameState.selectedCards = [setIndex, complementIndex];
+            log('🎯 เลือกการ์ด: Set 2x2 + Complement', 'info');
+            updateDisplay();
+            
+            setTimeout(() => {
+                testCardRemoval('Set 2x2 + Complement');
+            }, 500);
+        }
+        
+        function simulateGamePlacement() {
+            log('🎮 จำลองการลงการ์ดในเกมจริง', 'info');
+            log('📝 จำลองตามขั้นตอนที่เกมใช้...', 'info');
+            
+            if (testGameState.selectedCards.length < 2) {
+                log('❌ ต้องเลือกการ์ดอย่างน้อย 2 ใบ (เซต + เครื่องหมาย)', 'error');
+                return;
+            }
+            
+            // จำลองขั้นตอนการทำงานในเกม
+            const setCards = testGameState.selectedCards.filter(i => 
+                testGameState.players.black.hand[i]?.type === 'set'
+            );
+            const markerCards = testGameState.selectedCards.filter(i => 
+                testGameState.players.black.hand[i]?.type === 'marker'
+            );
+            
+            log(`🎯 การ์ดเซต: ${setCards.length} ใบ, การ์ดเครื่องหมาย: ${markerCards.length} ใบ`, 'info');
+            
+            if (setCards.length === 1 && markerCards.length === 1) {
+                const setCard = testGameState.players.black.hand[setCards[0]];
+                const markerCard = testGameState.players.black.hand[markerCards[0]];
+                
+                log(`🔄 ใช้การ์ด: ${setCard.label} + ${markerCard.label}`, 'info');
+                
+                if (setCard.subtype === 'empty') {
+                    log('📋 เรียกใช้ applyEmptySetWithMarker', 'info');
+                } else {
+                    log('📋 เรียกใช้ applySetWithMarker', 'info');
+                }
+                
+                testCardRemoval(`${setCard.label} + ${markerCard.label}`);
+            } else {
+                log('❌ ต้องเลือกการ์ดเซต 1 ใบ + การ์ดเครื่องหมาย 1 ใบ', 'error');
+            }
+        }
+        
+        // เริ่มต้น
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🎮 ระบบทดสอบพร้อมใช้งาน', 'info');
+            resetHand();
+        });
+    </script>
+</body>
+</html>

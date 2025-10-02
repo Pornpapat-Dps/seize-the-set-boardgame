@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทดสอบการทำงาน Set Operations</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .info { background-color: #d1ecf1; }
+        pre { background-color: #f8f9fa; padding: 10px; overflow-x: auto; }
+        button { margin: 5px; padding: 10px 15px; }
+        .board { 
+            display: grid; 
+            grid-template-columns: repeat(8, 40px); 
+            gap: 2px; 
+            margin: 10px 0; 
+        }
+        .cell { 
+            width: 40px; 
+            height: 40px; 
+            border: 1px solid #ccc; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 12px;
+        }
+        .black { background-color: #333; color: white; }
+        .white { background-color: #ddd; color: black; }
+        .highlighted { background-color: #ffeb3b; }
+    </style>
+</head>
+<body>
+    <h1>ทดสอบการทำงาน Set Operations</h1>
+    
+    <div class="test-section">
+        <h2>1. ทดสอบ Intersection + เซตว่าง</h2>
+        <p>คาดหวัง: ลบเบี้ยฝ่ายตรงข้ามทั้งหมด</p>
+        <button onclick="testIntersectionEmpty()">ทดสอบ</button>
+        <div id="intersectionResult"></div>
+        <div id="intersectionBoard" class="board"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. ทดสอบ Complement + เซต 2x2</h2>
+        <p>คาดหวัง: วางเบี้ยใน 60 ช่อง (ทุกที่ยกเว้น 4 ช่องในเซต)</p>
+        <button onclick="testComplement2x2()">ทดสอบ</button>
+        <div id="complement2x2Result"></div>
+        <div id="complement2x2Board" class="board"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. ทดสอบ Complement + เซต 4x4</h2>
+        <p>คาดหวัง: วางเบี้ยใน 48 ช่อง (ทุกที่ยกเว้น 16 ช่องในเซต)</p>
+        <button onclick="testComplement4x4()">ทดสอบ</button>
+        <div id="complement4x4Result"></div>
+        <div id="complement4x4Board" class="board"></div>
+    </div>
+
+    <script>
+        // Helper functions
+        function createBoard() {
+            const board = {};
+            // สร้างกระดาน 8x8 พร้อมเบี้ยตัวอย่าง
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const pos = `${String.fromCharCode(65 + row)}${col + 1}`;
+                    // วางเบี้ยแบบสลับสี
+                    if ((row + col) % 3 === 0) {
+                        board[pos] = 'black';
+                    } else if ((row + col) % 3 === 1) {
+                        board[pos] = 'white';
+                    }
+                    // ช่องที่เหลือปล่าว
+                }
+            }
+            return board;
+        }
+        
+        function displayBoard(board, containerId, highlightCells = []) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const pos = `${String.fromCharCode(65 + row)}${col + 1}`;
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.textContent = pos;
+                    
+                    if (board[pos] === 'black') {
+                        cell.classList.add('black');
+                        cell.textContent = '⚫';
+                    } else if (board[pos] === 'white') {
+                        cell.classList.add('white');
+                        cell.textContent = '⚪';
+                    }
+                    
+                    if (highlightCells.includes(pos)) {
+                        cell.classList.add('highlighted');
+                    }
+                    
+                    container.appendChild(cell);
+                }
+            }
+        }
+        
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        // Test 1: Intersection with empty set
+        function testIntersectionEmpty() {
+            const container = document.getElementById('intersectionResult');
+            container.innerHTML = '';
+            
+            const board = createBoard();
+            const currentPlayer = 'black';
+            const opponentColor = 'white';
+            
+            // Count tokens before
+            const opponentTokensBefore = Object.keys(board).filter(pos => board[pos] === opponentColor);
+            const blackTokensBefore = Object.keys(board).filter(pos => board[pos] === 'black');
+            
+            logResult('intersectionResult', `เริ่มต้น: เบี้ยดำ ${blackTokensBefore.length} ช่อง, เบี้ยขาว ${opponentTokensBefore.length} ช่อง`, 'info');
+            
+            // Simulate intersection with empty set - remove all opponent tokens
+            opponentTokensBefore.forEach(pos => delete board[pos]);
+            
+            const remainingTokens = Object.keys(board).filter(pos => board[pos]);
+            const allBlack = remainingTokens.every(pos => board[pos] === 'black');
+            
+            logResult('intersectionResult', `หลังใช้ Intersection + เซตว่าง: เหลือเบี้ย ${remainingTokens.length} ช่อง`, allBlack ? 'success' : 'error');
+            logResult('intersectionResult', `ลบเบี้ยขาว ${opponentTokensBefore.length} ช่อง: ${opponentTokensBefore.join(', ')}`, 'info');
+            
+            if (allBlack && opponentTokensBefore.length > 0) {
+                logResult('intersectionResult', '✅ ผลลัพธ์ถูกต้อง: ลบเบี้ยฝ่ายตรงข้ามทั้งหมด', 'success');
+            } else {
+                logResult('intersectionResult', '❌ ผลลัพธ์ผิดพลาด', 'error');
+            }
+            
+            displayBoard(board, 'intersectionBoard');
+        }
+
+        // Test 2: Complement with 2x2 set
+        function testComplement2x2() {
+            const container = document.getElementById('complement2x2Result');
+            container.innerHTML = '';
+            
+            const board = {};
+            const currentPlayer = 'black';
+            const setCard = { cells: ['A1', 'A2', 'B1', 'B2'] }; // 2x2 set
+            
+            // Generate all cells on board
+            const allCells = [];
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    allCells.push(`${String.fromCharCode(65 + row)}${col + 1}`);
+                }
+            }
+            
+            // Get complement (all cells except those in set)
+            const complementCells = allCells.filter(pos => !setCard.cells.includes(pos));
+            
+            logResult('complement2x2Result', `กระดานทั้งหมด: ${allCells.length} ช่อง`, 'info');
+            logResult('complement2x2Result', `เซต 2x2: ${setCard.cells.length} ช่อง (${setCard.cells.join(', ')})`, 'info');
+            logResult('complement2x2Result', `Complement ควรได้: ${64 - 4} = 60 ช่อง`, 'info');
+            logResult('complement2x2Result', `ผลลัพธ์จริง: ${complementCells.length} ช่อง`, complementCells.length === 60 ? 'success' : 'error');
+            
+            // Place tokens on complement cells
+            complementCells.forEach(pos => board[pos] = currentPlayer);
+            
+            if (complementCells.length === 60) {
+                logResult('complement2x2Result', '✅ ผลลัพธ์ถูกต้อง: วางเบี้ยใน 60 ช่อง', 'success');
+            } else {
+                logResult('complement2x2Result', '❌ ผลลัพธ์ผิดพลาด', 'error');
+            }
+            
+            displayBoard(board, 'complement2x2Board', setCard.cells);
+        }
+
+        // Test 3: Complement with 4x4 set
+        function testComplement4x4() {
+            const container = document.getElementById('complement4x4Result');
+            container.innerHTML = '';
+            
+            const board = {};
+            const currentPlayer = 'black';
+            const setCard = { cells: [] }; // สร้างเซต 4x4
+            
+            // สร้างเซต 4x4 (A1-D4)
+            for (let row = 0; row < 4; row++) {
+                for (let col = 0; col < 4; col++) {
+                    setCard.cells.push(`${String.fromCharCode(65 + row)}${col + 1}`);
+                }
+            }
+            
+            // Generate all cells on board
+            const allCells = [];
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    allCells.push(`${String.fromCharCode(65 + row)}${col + 1}`);
+                }
+            }
+            
+            // Get complement (all cells except those in set)
+            const complementCells = allCells.filter(pos => !setCard.cells.includes(pos));
+            
+            logResult('complement4x4Result', `กระดานทั้งหมด: ${allCells.length} ช่อง`, 'info');
+            logResult('complement4x4Result', `เซต 4x4: ${setCard.cells.length} ช่อง (A1-D4)`, 'info');
+            logResult('complement4x4Result', `Complement ควรได้: ${64 - 16} = 48 ช่อง`, 'info');
+            logResult('complement4x4Result', `ผลลัพธ์จริง: ${complementCells.length} ช่อง`, complementCells.length === 48 ? 'success' : 'error');
+            
+            // Place tokens on complement cells
+            complementCells.forEach(pos => board[pos] = currentPlayer);
+            
+            if (complementCells.length === 48) {
+                logResult('complement4x4Result', '✅ ผลลัพธ์ถูกต้อง: วางเบี้ยใน 48 ช่อง', 'success');
+            } else {
+                logResult('complement4x4Result', '❌ ผลลัพธ์ผิดพลาด', 'error');
+            }
+            
+            displayBoard(board, 'complement4x4Board', setCard.cells);
+        }
+
+        // Auto-run tests on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('กำลังทดสอบ logic...');
+        });
+    </script>
+</body>
+</html>

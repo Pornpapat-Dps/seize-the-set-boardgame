@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>🔍 Debug การลบการ์ด</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5; 
+        }
+        .debug-panel { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        }
+        .card-display { 
+            display: flex; 
+            gap: 10px; 
+            margin: 10px 0; 
+            flex-wrap: wrap;
+        }
+        .card { 
+            padding: 8px 12px; 
+            border: 2px solid #ccc; 
+            border-radius: 5px; 
+            background: white; 
+            cursor: pointer;
+            min-width: 100px;
+            text-align: center;
+        }
+        .card.selected { 
+            border-color: #007bff; 
+            background-color: #e3f2fd; 
+        }
+        .card.set { border-left: 4px solid #28a745; }
+        .card.marker { border-left: 4px solid #dc3545; }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 5px; 
+            margin: 5px; 
+            cursor: pointer; 
+        }
+        button:hover { background-color: #0056b3; }
+        .log { 
+            background-color: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            font-size: 12px; 
+            max-height: 300px; 
+            overflow-y: auto; 
+            white-space: pre-wrap;
+        }
+        .error { color: #dc3545; }
+        .success { color: #28a745; }
+        .warning { color: #ffc107; }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #666; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug การลบการ์ดหลังใช้งาน</h1>
+    
+    <div class="debug-panel">
+        <h2>🃏 จำลองมือการ์ด</h2>
+        <p><strong>คลิกการ์ดเพื่อเลือก</strong> (สามารถเลือกได้หลายใบ)</p>
+        <div id="hand" class="card-display"></div>
+        <button onclick="addTestCards()">🔄 เพิ่มการ์ดทดสอบ</button>
+        <button onclick="clearSelection()">❌ ยกเลิกการเลือก</button>
+    </div>
+    
+    <div class="debug-panel">
+        <h2>⚙️ การทดสอบการลบการ์ด</h2>
+        <p><strong>การ์ดที่เลือก:</strong> <span id="selectedInfo">ไม่มี</span></p>
+        <button onclick="testCardRemoval()">🗑️ ทดสอบลบการ์ด</button>
+        <button onclick="testIntersectionEmptySet()">🔥 ทดสอบ Intersection + Empty Set</button>
+        <button onclick="testComplementWithSet()">📐 ทดสอบ Complement + Set</button>
+    </div>
+    
+    <div class="debug-panel">
+        <h2>📊 สถานะปัจจุบัน</h2>
+        <div id="status">
+            <strong>จำนวนการ์ดในมือ:</strong> <span id="cardCount">0</span><br>
+            <strong>การ์ดที่เลือก:</strong> <span id="selectedCount">0</span><br>
+            <strong>Index ที่เลือก:</strong> <span id="selectedIndices">[]</span>
+        </div>
+    </div>
+    
+    <div class="debug-panel">
+        <h2>📝 Log การทำงาน</h2>
+        <div id="debugLog" class="log">พร้อมทดสอบ...\n</div>
+        <button onclick="clearLog()">🗑️ ล้าง Log</button>
+    </div>
+
+    <script>
+        // จำลอง gameState
+        let mockGameState = {
+            selectedCards: [],
+            players: {
+                black: {
+                    hand: []
+                }
+            },
+            currentPlayer: 'black'
+        };
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('debugLog');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            logElement.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+        
+        function clearLog() {
+            document.getElementById('debugLog').innerHTML = 'Log ถูกล้างแล้ว...\n';
+        }
+        
+        function updateDisplay() {
+            const hand = document.getElementById('hand');
+            hand.innerHTML = '';
+            
+            mockGameState.players.black.hand.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${card.type}`;
+                cardElement.textContent = card.label;
+                cardElement.onclick = () => selectCard(index);
+                
+                if (mockGameState.selectedCards.includes(index)) {
+                    cardElement.classList.add('selected');
+                }
+                
+                hand.appendChild(cardElement);
+            });
+            
+            updateStatus();
+        }
+        
+        function updateStatus() {
+            document.getElementById('cardCount').textContent = mockGameState.players.black.hand.length;
+            document.getElementById('selectedCount').textContent = mockGameState.selectedCards.length;
+            document.getElementById('selectedIndices').textContent = JSON.stringify(mockGameState.selectedCards);
+            
+            const selectedCards = mockGameState.selectedCards.map(index => {
+                const card = mockGameState.players.black.hand[index];
+                return card ? `${card.label} (${card.type})` : 'undefined';
+            });
+            document.getElementById('selectedInfo').textContent = selectedCards.join(', ') || 'ไม่มี';
+        }
+        
+        function selectCard(index) {
+            const cardIndex = mockGameState.selectedCards.indexOf(index);
+            if (cardIndex === -1) {
+                mockGameState.selectedCards.push(index);
+                log(`เลือกการ์ด index ${index}: ${mockGameState.players.black.hand[index]?.label}`, 'info');
+            } else {
+                mockGameState.selectedCards.splice(cardIndex, 1);
+                log(`ยกเลิกการเลือกการ์ด index ${index}`, 'info');
+            }
+            updateDisplay();
+        }
+        
+        function clearSelection() {
+            mockGameState.selectedCards = [];
+            log('ยกเลิกการเลือกทั้งหมด', 'warning');
+            updateDisplay();
+        }
+        
+        function addTestCards() {
+            mockGameState.players.black.hand = [
+                { type: 'set', subtype: 'empty', label: 'Empty Set ∅', cells: [] },
+                { type: 'set', subtype: '2x2', label: 'Set 2x2', cells: ['A1', 'A2', 'B1', 'B2'] },
+                { type: 'set', subtype: '4x4', label: 'Set 4x4', cells: ['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'C1', 'C2', 'C3', 'C4', 'D1', 'D2', 'D3', 'D4'] },
+                { type: 'marker', subtype: 'intersection', label: 'Intersection ∩' },
+                { type: 'marker', subtype: 'complement', label: 'Complement ᶜ' },
+                { type: 'marker', subtype: 'union', label: 'Union ∪' }
+            ];
+            mockGameState.selectedCards = [];
+            log('เพิ่มการ์ดทดสอบ 6 ใบ', 'success');
+            updateDisplay();
+        }
+        
+        function testCardRemoval() {
+            if (mockGameState.selectedCards.length === 0) {
+                log('❌ กรุณาเลือกการ์ดก่อนทดสอบ', 'error');
+                return;
+            }
+            
+            log('🧪 เริ่มทดสอบการลบการ์ด', 'info');
+            log(`การ์ดก่อนลบ: ${mockGameState.players.black.hand.length} ใบ`, 'info');
+            log(`การ์ดที่เลือก: ${mockGameState.selectedCards.join(', ')}`, 'info');
+            
+            // จำลองการลบการ์ดแบบที่ใช้ในโค้ดจริง
+            const selectedCards = [...mockGameState.selectedCards];
+            
+            // ตรวจสอบการหาการ์ดด้วย find()
+            const setIndex = selectedCards.find(i => mockGameState.players.black.hand[i]?.type === 'set');
+            const markerIndex = selectedCards.find(i => mockGameState.players.black.hand[i]?.type === 'marker');
+            
+            log(`setIndex found: ${setIndex}`, setIndex !== undefined ? 'success' : 'error');
+            log(`markerIndex found: ${markerIndex}`, markerIndex !== undefined ? 'success' : 'error');
+            
+            if (setIndex !== undefined && markerIndex !== undefined) {
+                const allIndices = [setIndex, markerIndex].sort((a, b) => b - a);
+                log(`จะลบการ์ด index: ${allIndices.join(', ')} (เรียงจากมากไปน้อย)`, 'info');
+                
+                allIndices.forEach(index => {
+                    const card = mockGameState.players.black.hand[index];
+                    if (card) {
+                        log(`ลบการ์ด index ${index}: ${card.label}`, 'success');
+                        mockGameState.players.black.hand.splice(index, 1);
+                    } else {
+                        log(`❌ ไม่พบการ์ด index ${index}`, 'error');
+                    }
+                });
+            } else {
+                log('❌ ไม่พบการ์ดที่ต้องการลบ', 'error');
+            }
+            
+            mockGameState.selectedCards = [];
+            log(`การ์ดหลังลบ: ${mockGameState.players.black.hand.length} ใบ`, 'info');
+            updateDisplay();
+        }
+        
+        function testIntersectionEmptySet() {
+            // ตั้งค่าการเลือกการ์ด: Empty Set + Intersection
+            const emptySetIndex = mockGameState.players.black.hand.findIndex(card => card.subtype === 'empty');
+            const intersectionIndex = mockGameState.players.black.hand.findIndex(card => card.subtype === 'intersection');
+            
+            if (emptySetIndex === -1 || intersectionIndex === -1) {
+                log('❌ ไม่พบการ์ดที่ต้องการ (Empty Set หรือ Intersection)', 'error');
+                return;
+            }
+            
+            mockGameState.selectedCards = [emptySetIndex, intersectionIndex];
+            log('🔥 ตั้งค่าทดสอบ: Empty Set + Intersection', 'warning');
+            updateDisplay();
+            
+            setTimeout(() => {
+                testCardRemoval();
+            }, 1000);
+        }
+        
+        function testComplementWithSet() {
+            // ตั้งค่าการเลือกการ์ด: Set 2x2 + Complement
+            const set2x2Index = mockGameState.players.black.hand.findIndex(card => card.subtype === '2x2');
+            const complementIndex = mockGameState.players.black.hand.findIndex(card => card.subtype === 'complement');
+            
+            if (set2x2Index === -1 || complementIndex === -1) {
+                log('❌ ไม่พบการ์ดที่ต้องการ (Set 2x2 หรือ Complement)', 'error');
+                return;
+            }
+            
+            mockGameState.selectedCards = [set2x2Index, complementIndex];
+            log('📐 ตั้งค่าทดสอบ: Set 2x2 + Complement', 'warning');
+            updateDisplay();
+            
+            setTimeout(() => {
+                testCardRemoval();
+            }, 1000);
+        }
+        
+        // เริ่มต้น
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🔍 Debug panel พร้อมใช้งาน', 'info');
+            addTestCards();
+        });
+    </script>
+</body>
+</html>

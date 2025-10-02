@@ -852,8 +852,19 @@ const applyEmptySetWithMarker = (emptySetCard, markerCard) => {
       break;
       
     case 'intersection':
-      // Intersection + Empty Set = ทำให้พื้นที่นั้นไม่มีเจ้าของ
-      smallestOpponentArea.forEach(pos => {
+      // Intersection + Empty Set = ลบเบี้ยทั้งสองฝ่ายออกจากกระดานทั้งหมด
+      const allTokensOnBoard = [];
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const pos = `${String.fromCharCode(65 + row)}${col + 1}`;
+          if (gameState.board[pos]) { // ถ้ามีเบี้ยอยู่ (ไม่ว่าจะเป็นฝ่ายไหน)
+            allTokensOnBoard.push(pos);
+          }
+        }
+      }
+      
+      // ลบเบี้ยทั้งหมดออกจากกระดาน
+      allTokensOnBoard.forEach(pos => {
         delete gameState.board[pos];
         const cell = document.querySelector(`[data-position="${pos}"]`);
         if(cell) {
@@ -862,7 +873,7 @@ const applyEmptySetWithMarker = (emptySetCard, markerCard) => {
         }
       });
       updateTokenCounts();
-      logMsg += ' → ลบเบี้ยออกจากกระดาน (Intersection + Empty Set)';
+      logMsg += ` → ลบเบี้ยทั้งสองฝ่ายทั้งหมด ${allTokensOnBoard.length} ช่อง (Intersection + Empty Set)`;
       break;
       
     case 'difference':
